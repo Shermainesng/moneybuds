@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Alert, StyleSheet, View, AppState } from 'react-native'
-import { supabase } from '../lib/supabase'
+import { supabase } from '../../lib/supabase'
+import {useRouter} from 'expo-router'
 import { Button, Input } from 'react-native-elements'
 
 // Tells Supabase Auth to continuously refresh the session automatically if
@@ -19,6 +20,7 @@ export default function Auth() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+ 
 
   async function signInWithEmail() {
     setLoading(true)
