@@ -4,8 +4,25 @@ import { Pressable } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 export default function GroupsLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
+    <Stack
+      screenOptions={{
+        headerRight: () => (
+          <Link href="/(tabs)/groups/add-groups" asChild>
+            <Pressable>
+            <AntDesign name="addusergroup" size={24} color="black" />
+            </Pressable>
+          </Link>
+        )
+      }}>
+        
+      <Stack.Screen name="index" options={{ 
+        title:'Groups', 
+        headerTintColor:'black',
+        headerStyle: {
+          backgroundColor: "#EDF76A"
+        }
+        }}/>
+  
      
     </Stack>
   );

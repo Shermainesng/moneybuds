@@ -7,24 +7,7 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 export default function IndexScreen() {
   return (
     <View className="flex-1 bg-purple-300">
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerTitle: "groups",
-          headerTintColor: "black",
-          headerStyle: {
-            backgroundColor: "#EDF76A"
-          },
-          // headerSearchBarOptions: {}
-          headerRight: () => (
-            <Link href='/(tabs)/groups/add-groups' asChild>
-              <Pressable>
-                <AntDesign name="addusergroup" size={24} color="black" />
-              </Pressable>
-            </Link>
-          )
-        }}
-      />
+      
       <FlatList data={groups} keyExtractor={(item, index) => item.name + index} renderItem={({ item }) => <FriendsListItem item={item} />} onEndReachedThreshold={1} contentInsetAdjustmentBehavior="automatic" />
 
       <Link href={'/add-expense/'} asChild>

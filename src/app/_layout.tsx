@@ -55,8 +55,8 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="auth" options={{ headerShown: false }} />
           <Stack.Screen name="add-expense" options={{ presentation: "modal", headerShown: false }} />
-          <Stack.Screen name="add-friends" options={{ presentation: "modal" }} />
-          <Stack.Screen name="add-groups" options={{ presentation: "modal" }} />
+          {/* <Stack.Screen name="add-friends" options={{ presentation: "modal" }} /> */}
+          {/* <Stack.Screen name="add-groups" options={{ presentation: "modal" }} /> */}
       </Stack>
       </AuthProvider>
     </ThemeProvider>

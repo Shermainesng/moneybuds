@@ -1,5 +1,5 @@
 import {useState} from 'react'
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import Button from '@/src/components/Button';
 import { supabase } from '@/src/lib/supabase';
 import { useAuth } from '@/src/providers/AuthProvider';
@@ -27,7 +27,8 @@ export default function SettingsPage() {
 
   return (
     <View style={styles.container}>
-      <Button onPress={handleSignOut} disabled={!isLoading} text="Sign Out"/>
+      <Text>Click below</Text>
+      <Button onPress={handleSignOut} disabled={isLoading} text= {isLoading ? "Signing Out...":"Sign Out"}/>
     </View>
   );
 }
