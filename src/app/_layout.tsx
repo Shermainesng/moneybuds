@@ -4,8 +4,8 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-
-import { useColorScheme } from '@/components/useColorScheme';
+import AuthProvider from '../providers/AuthProvider';
+import { useColorScheme } from '../components/useColorScheme'
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -22,7 +22,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require('../../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
 
@@ -48,11 +48,18 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
+    // <TamaguiProvider>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <AuthProvider>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
+          <Stack.Screen name="add-expense" options={{ presentation: "modal", headerShown: false }} />
+          <Stack.Screen name="add-friends" options={{ presentation: "modal" }} />
+          <Stack.Screen name="add-groups" options={{ presentation: "modal" }} />
       </Stack>
+      </AuthProvider>
     </ThemeProvider>
+    // </TamaguiProvider>
   );
 }
