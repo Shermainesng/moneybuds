@@ -1,33 +1,84 @@
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
-import React from "react";
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Pressable, StyleSheet} from "react-native";
+import React, {useEffect, useState} from "react";
 import { Stack } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, AntDesign} from "@expo/vector-icons";
+import * as Contacts from 'expo-contacts'
+import { useGetContactsWithAccounts } from "@/src/api/friends";
 
+type User = {
+  id: string;
+  avatar_url: string | null;
+  full_name: string | null;
+  phone_number: string;
+  updated_at: string | null;
+  username: string;
+  website: string | null;
+}
 export default function AddFriendsScreen() {
-  const contacts = ["Ahn Ye-won", "An Min-young", "Cha Hyun-seung", "Cho Min-ji", "Choi Hye-seon", "Choi Jong-woo", "Choi Min-woo", "Choi Seo-eun", "Choi Si-hun", "Jo Yoong-jae", "Kang So-yeon", "Kim Gyu-ri", "Kim Han-bin", "Kim Hyeon-joong", "Kim Jin-young", "Kim Jun-sik", "Kim Se-jun", "Kim Su-min", "Lee Gwan-hee", "Lee Jin-seok", "Lee Nadine", "Lee So-e", "Lim Min-su", "Moon Se-hoon", "Oh Jin-taek", "Park Min-kyu", "Park Se-jeong", "Seong Min-ji", "Shin Dong-woo", "Shin Ji-yeon", "Shin Seul-ki", "Son Won Ik", "Song Ji-a", "Yu Si-eun", "Yun Ha-bin", "Yun Ha-jeong"];
+  const phones:string[] = []
+  const  {data: existingPhones, error} = useGetContactsWithAccounts()
+  const [contacts, setContacts] = useState<User[] >([])
+
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status === 'granted') {
+        const { data } = await Contacts.getContactsAsync({
+          fields: [Contacts.Fields.PhoneNumbers],
+        });
+
+        if (data.length > 0) {
+          data.forEach(contact => contact.phoneNumbers && phones.push(contact.phoneNumbers[0].number as string))
+          
+          const filteredContacts = existingPhones?.filter(user => {
+            return phones.some(phone => normalizePhoneNumber(user.phone_number).includes(normalizePhoneNumber(phone)));
+          });
+          // console.log(filteredContacts)
+          // console.log(phones)
+          if (!error) setContacts(filteredContacts)
+          }
+      }
+    })();
+  }, []);
+
+  function normalizePhoneNumber(phoneNumber:string) {
+    // Remove non-numeric characters from the phone number
+    return phoneNumber.replace(/\D/g, '');
+  }
+
   return (
     <SafeAreaView className="mb-24">
-      <Stack.Screen
-        options={{
-          title: "add friends",
-          headerStyle: { backgroundColor: "#EDF76A" },
-          headerRight: () => (
-            <TouchableOpacity>
-              <Ionicons name="add" size={30} color="black" />
-            </TouchableOpacity>
-          )
-        }}
-      />
+     
       <View className="bg-white m-2 border rounded-3xl p-2 flex-row items-center">
         <Ionicons name="search" size={20} color="black" />
-        <Text className="pl-1">search friends from contacts list</Text>
+        <Text className="pl-1">Add friends from your contacts</Text>
+      </View>
+      <View style={styles.addNewContact}>
+        <Pressable>
+          <AntDesign name="adduser" size={24} color="black" />
+        </Pressable>
+        <Text>Add a new contact to splitwise</Text>
       </View>
       <ScrollView className="px-3">
-        {contacts.length > 0 &&
-          contacts.map(contact => {
-            return <Text className="text-base py-2">{contact}</Text>;
-          })}
+        <Text style={{paddingBottom:10}}>From your contacts:</Text>
+        {contacts && contacts.length > 0 &&
+          contacts.map(contact => (
+            <View>
+              <Text className="text-base ">{contact.username}</Text>
+              <Text>{contact.phone_number}</Text>
+            </View>
+          ))}
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  addNewContact: {
+    flexDirection:'row',
+    alignItems:'center', 
+    justifyContent:'center',
+    padding:10
+  }
+})

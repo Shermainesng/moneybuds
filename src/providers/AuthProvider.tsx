@@ -33,7 +33,7 @@ type AuthData = {
             if (session) {
                 // fetch profile
                 const { data } = await supabase
-                  .from('profiles')
+                  .from('')
                   .select('*')
                   .eq('id', session.user.id)
                   .single();

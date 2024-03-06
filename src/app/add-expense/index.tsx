@@ -1,18 +1,37 @@
-import { View, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Pressable } from "react-native";
-import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Pressable, ActivityIndicator } from "react-native";
+import React, { useState, useEffect } from "react";
 import { Foundation } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import { EvilIcons } from "@expo/vector-icons";
+import { useGetFriendsList, useGetFriendsProfiles } from "@/src/api/friends";
+import { useAuth } from "@/src/providers/AuthProvider";
 
 export default function AddExpenseModal() {
+  const {session} = useAuth()
+  const id:string = session?.user.id
   const [expenseName, setExpenseName] = useState("");
   const [expenseAmount, setExpenseAmount] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [splitType, setSplitType] = useState("equal");
   const [splitAmount, setSplitAmount] = useState("");
+  const [showDropdown, setShowDropdown] = useState<boolean>(false)
+  const [friends, setFriends] = useState([])
   const [friendToSplitWith, setFriendToSplitWith] = useState("");
 
+  //get all friend's avatar and names
+  const {data: friendIDs, error: friendsError, isLoading: friendsIsLoading} = useGetFriendsList(id)
+  const {data: friendsDetails } = useGetFriendsProfiles(friendIDs)
+
+  if (friendsIsLoading) return <ActivityIndicator />;
+  if (friendsError) return <Text>Failed to fetch friends</Text>;
+
+  useEffect(() => {
+    if(friendsDetails) {
+      setFriends(friendsDetails)
+    }
+  }, [friendsDetails])
+ 
   function formatDate(date: Date) {
     return date.toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -48,16 +67,18 @@ export default function AddExpenseModal() {
     setFriendToSplitWith("");
   }
 
+  //when user clicks on text input, dropdown of all friends' names - user can select from list
+  //as user types, choices become more refined
+  
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View className="items-center gap-y-10 flex-1 bg-pink-200">
         <Stack.Screen
           options={{
             title: "new expense",
-            // headerStyle: { backgroundColor: "#EDF76A" },
-            // headerStyle: {
-            //   backgroundColor: "rgb(216 180 254)"
-            // },
+            headerStyle: {
+              backgroundColor: "rgb(216 180 254)"
+            },
             headerLeft: () => (
               <Link href="../">
                 <EvilIcons name="close" size={24} color="black" />
@@ -71,20 +92,21 @@ export default function AddExpenseModal() {
           }}
         />
 
-        <View className="border-b-[1px] border-gray-500 w-full p-2 flex-row items-center">
+        <View style={{ borderBottomWidth: 1, borderBottomColor: 'gray', padding: 10, flexDirection: 'row', alignItems: 'center', height:40}}>
           <Text className="text-gray-500">split between you and: </Text>
-          <TouchableOpacity className="w-full">
-            <TextInput placeholder="type friend's name" placeholderTextColor="gray" onChangeText={text => setFriendToSplitWith(text)} />
+          <TouchableOpacity onPress={() => setShowDropdown(true)} style={{ flex: 1 }}>
+            {/* <TextInput placeholder="Enter friend's names" placeholderTextColor="gray" onChangeText={text => setFriendToSplitWith(text)} /> */}
+            <Text>CLick me</Text>
           </TouchableOpacity>
+            
+            {showDropdown && (
+              <View style={{ position: 'absolute', backgroundColor: 'white', top:40, left: 0, width: '50%', padding: 10}}>
+                {friendsDetails && friendsDetails.length>0 && friendsDetails.map((friend) => (
+                  <Text>{friend.username}</Text>
+                ))}
+              </View>
+            )}
         </View>
-
-        {/* <View className="pt-2 items-center">
-          <Text>if your friend's name does not appear in the list, </Text>
-          <TouchableOpacity className="border border-black rounded-xl px-2 bg-[#F6D238]">
-            <Text>add them</Text>
-          </TouchableOpacity>
-          <Text> first before adding an expense</Text>
-        </View> */}
 
         <View className="pt-10 w-[70vw] items-center">
           <View className="bg-[#EDF76A] w-full items-center rounded-t-xl border border-b-[0.5px] p-1">

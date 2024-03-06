@@ -1,25 +1,44 @@
-import { StyleSheet, Text, Pressable, View } from "react-native";
+import { StyleSheet, Text, Pressable, View, Image,ActivityIndicator} from "react-native";
 import { Link } from "expo-router";
+import { useGetFriendDetails } from "../api/friends";
 
+// export const defaultAvatar = () => {
+//   return <Image source={require("../../assets/images/emoji.png")}/>
+// }
+
+// type Friend={
+//   username:string
+//   avatar_url:string | null
+// }
+export const defaultAvatarPath = require("../../assets/images/emoji.png")
 
 const FriendsListItem = ({item}: any) => {
+  const {friend_id} = item
+  const {data: friend, error, isLoading} = useGetFriendDetails(friend_id)
+
+  if (isLoading) {
+    return <ActivityIndicator/>
+  }
+
+  if (error) {
+      return <Text>Failed to fetch products</Text>
+  }
     return (
-        <Link href={`/(tabs)/friends/${item.name}`} asChild>
+      <View>
+        <Link href={`/(tabs)/friends/${friend.username}`} asChild>
           <Pressable style={styles.friendContainer}>
             <View style={styles.friendTitle}>
-              {/* <Avatar circular size="$4">
-                <Avatar.Image src={item.imageUrl} />
-                <Avatar.Fallback bc="grey" />
-              </Avatar> */}
-              <Text style={styles.friendName}>{item.name}</Text>
+              <Image source={friend.avatar_url || defaultAvatarPath} style={{width: 30, height:30}}/>
+              <Text style={styles.friendName}>{friend.username}</Text>
             </View>
     
             <View style={styles.friendSubtitle}>
-              <Text style={styles.subValue}>{item.status}</Text>
-              <Text style={styles.subValue}>${item.amount}</Text>
+              {/* <Text style={styles.subValue}>{item.status}</Text> */}
+              {/* <Text style={styles.subValue}>${item.amount}</Text> */}
             </View>
           </Pressable>
         </Link>
+        </View>
       );
 }
 

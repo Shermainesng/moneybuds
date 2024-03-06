@@ -5,7 +5,9 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import AuthProvider from '../providers/AuthProvider';
+import QueryProvider from '../providers/QueryProvider';
 import { useColorScheme } from '../components/useColorScheme'
+
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -46,11 +48,12 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-
   return (
     // <TamaguiProvider>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      {/* <ApolloProvider client={client}> */}
       <AuthProvider>
+        <QueryProvider>
       <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="auth" options={{ headerShown: false }} />
@@ -58,8 +61,12 @@ function RootLayoutNav() {
           {/* <Stack.Screen name="add-friends" options={{ presentation: "modal" }} /> */}
           {/* <Stack.Screen name="add-groups" options={{ presentation: "modal" }} /> */}
       </Stack>
+      </QueryProvider>
       </AuthProvider>
+      {/* </ApolloProvider> */}
     </ThemeProvider>
     // </TamaguiProvider>
   );
 }
+
+// AppRegistry.registerComponent('MyApplication', () => RootLayoutNav);

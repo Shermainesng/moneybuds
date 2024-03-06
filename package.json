@@ -13,10 +13,12 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@apollo/client": "^3.9.5",
     "@expo/vector-icons": "^14.0.0",
     "@react-native-async-storage/async-storage": "1.21.0",
     "@react-navigation/native": "^6.0.2",
     "@supabase/supabase-js": "^2.39.7",
+    "@tanstack/react-query": "^5.24.8",
     "expo": "~50.0.7",
     "expo-font": "~11.10.3",
     "expo-linking": "~6.2.2",
@@ -25,6 +27,7 @@
     "expo-status-bar": "~1.11.1",
     "expo-system-ui": "~2.9.3",
     "expo-web-browser": "~12.8.2",
+    "graphql": "^15.8.0",
     "nativewind": "^2.0.11",
     "react": "^18.2.0",
     "react-dom": "18.2.0",
@@ -32,7 +35,9 @@
     "react-native-elements": "^3.4.3",
     "react-native-screens": "~3.29.0",
     "react-native-url-polyfill": "^2.0.0",
-    "react-native-web": "~0.19.6"
+    "react-native-web": "~0.19.6",
+    "react-query": "^3.39.3",
+    "expo-contacts": "~12.8.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

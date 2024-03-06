@@ -1,14 +1,35 @@
-import { View, Text, Pressable, FlatList} from "react-native";
+import { View, Text, Pressable, FlatList, ActivityIndicator} from "react-native";
+import {useState, useEffect} from 'react'
 import { Link, Stack } from "expo-router";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
-import { friends } from "@/src/constants/Data";
+// import { useFriendIDs } from "@/src/api/friends";
+// import { useFetchFriendList } from "@/src/api/friends";
+import { useGetFriendsList } from "@/src/api/friends";
 import FriendsListItem from "@/src/components/FriendsListItem";
+import { useAuth } from "@/src/providers/AuthProvider";
 
+type Friend={ 
+
+}
 export default function FriendsScreen() {
+    const {session} = useAuth()
+    const id = session?.user.id
+    
+    //get list of friend IDs
+    const {data: friends, error, isPending} = useGetFriendsList(id)
+   
+
+    if (error) {
+        return <Text>Failed to fetch data</Text>
+      }
+
+    if (isPending) {
+        return <ActivityIndicator/>
+    }
     return (
         <View className="flex-1 bg-purple-300">
             
-            <FlatList data={friends} keyExtractor={(item, index) => item.name + index} renderItem={({ item }) => <FriendsListItem item={item} />} onEndReachedThreshold={1} contentInsetAdjustmentBehavior="automatic" />
+            <FlatList data={friends} renderItem={({ item }) => <FriendsListItem item={item} />} onEndReachedThreshold={1} contentInsetAdjustmentBehavior="automatic" />
 
             <Link href="/add-expense/" asChild>
             <Pressable className="border border-black rounded-full bg-[#EDF76A] absolute bottom-[2px] p-2 right-[41vw] z-50">
