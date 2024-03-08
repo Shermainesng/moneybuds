@@ -4,7 +4,7 @@ import { Link, Stack } from "expo-router";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 // import { useFriendIDs } from "@/src/api/friends";
 // import { useFetchFriendList } from "@/src/api/friends";
-import { useGetFriendsList } from "@/src/api/friends";
+import { useGetFriendsList, useGetFriendsProfiles } from "@/src/api/friends";
 import FriendsListItem from "@/src/components/FriendsListItem";
 import { useAuth } from "@/src/providers/AuthProvider";
 
@@ -15,17 +15,19 @@ export default function FriendsScreen() {
     const {session} = useAuth()
     const id = session?.user.id
     
-    //get list of friend IDs
-    const {data: friends, error, isPending} = useGetFriendsList(id)
-   
+    // get list of friend IDs
+    const {data: friendsIDs, error: IDsError, isLoading: IDsLoading} = useGetFriendsList(id)
+    const {data: friends, error: friendsError, isLoading: friendsLoading} = useGetFriendsProfiles(friendsIDs)
+    
 
-    if (error) {
+    if (IDsError || friendsError) {
         return <Text>Failed to fetch data</Text>
-      }
+        }
 
-    if (isPending) {
+    if (IDsLoading || friendsLoading) {
         return <ActivityIndicator/>
     }
+    
     return (
         <View className="flex-1 bg-purple-300">
             

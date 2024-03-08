@@ -48,7 +48,7 @@ export const useGetFriendsList= (userId:any) => {
         queryFn:async () => {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('username, avatar_url')
+                .select('id, username, avatar_url')
                 .in('id', friendIds)
              
             // console.log("friends list", data);

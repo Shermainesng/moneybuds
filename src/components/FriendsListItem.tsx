@@ -13,29 +13,21 @@ import { useGetFriendDetails } from "../api/friends";
 export const defaultAvatarPath = require("../../assets/images/emoji.png")
 
 const FriendsListItem = ({item}: any) => {
-  const {friend_id} = item
-  const {data: friend, error, isLoading} = useGetFriendDetails(friend_id)
+  console.log(item)
 
-  if (isLoading) {
-    return <ActivityIndicator/>
-  }
-
-  if (error) {
-      return <Text>Failed to fetch products</Text>
-  }
     return (
       <View>
-        <Link href={`/(tabs)/friends/${friend.username}`} asChild>
+        <Link href={`/(tabs)/friends/${item.username}`} asChild>
           <Pressable style={styles.friendContainer}>
             <View style={styles.friendTitle}>
-              <Image source={friend.avatar_url || defaultAvatarPath} style={{width: 30, height:30}}/>
-              <Text style={styles.friendName}>{friend.username}</Text>
+              <Image source={item.avatar_url || defaultAvatarPath} style={{width: 30, height:30}}/>
+              <Text style={styles.friendName}>{item.username}</Text>
             </View>
     
             <View style={styles.friendSubtitle}>
               {/* <Text style={styles.subValue}>{item.status}</Text> */}
               {/* <Text style={styles.subValue}>${item.amount}</Text> */}
-            </View>
+           </View>
           </Pressable>
         </Link>
         </View>

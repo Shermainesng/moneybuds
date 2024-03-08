@@ -4,16 +4,9 @@ import { Stack } from "expo-router";
 import { Ionicons, AntDesign} from "@expo/vector-icons";
 import * as Contacts from 'expo-contacts'
 import { useGetContactsWithAccounts } from "@/src/api/friends";
+import { User } from "@/src/constants/type";
 
-type User = {
-  id: string;
-  avatar_url: string | null;
-  full_name: string | null;
-  phone_number: string;
-  updated_at: string | null;
-  username: string;
-  website: string | null;
-}
+
 export default function AddFriendsScreen() {
   const phones:string[] = []
   const  {data: existingPhones, error} = useGetContactsWithAccounts()
