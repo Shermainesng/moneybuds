@@ -1,6 +1,25 @@
 import { supabase } from "@/src/lib/supabase";
 import {useQuery} from '@tanstack/react-query'
 
+export const useGetUserProfile = (userId: any) => {
+    return useQuery({
+        queryKey: ['user', userId], 
+        queryFn:async () => {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id, avatar_url, username')
+                .eq('id', userId);
+        
+            // console.log("self list", data[0]);
+        
+            if (error) {
+                throw new Error(error.message);
+            }
+        
+            return data[0]
+        }
+    });
+}
 //get friendIDs of user
 export const useGetFriendsList= (userId:any) => {
     return useQuery({

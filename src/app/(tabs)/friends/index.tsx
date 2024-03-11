@@ -19,6 +19,27 @@ export default function FriendsScreen() {
     const {data: friendsIDs, error: IDsError, isLoading: IDsLoading} = useGetFriendsList(id)
     const {data: friends, error: friendsError, isLoading: friendsLoading} = useGetFriendsProfiles(friendsIDs)
     
+    const getData = () => {
+        fetch('http://127.0.0.1:3000/', {
+            mode: 'cors'
+        })
+            .then(response => {
+                if (!response.ok) {
+                throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Handle the data received from the server
+                console.log(data);
+            })
+            .catch(error => {
+                // Handle errors
+                console.error('There was a problem with the fetch operation:', error);
+            });
+    }
+
+    getData()
 
     if (IDsError || friendsError) {
         return <Text>Failed to fetch data</Text>
