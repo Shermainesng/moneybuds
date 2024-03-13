@@ -8,6 +8,7 @@ import AuthProvider from '../providers/AuthProvider';
 import QueryProvider from '../providers/QueryProvider';
 import { useColorScheme } from '../components/useColorScheme'
 
+import { ApolloClient, InMemoryCache, ApolloProvider, gql } from '@apollo/client';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -47,11 +48,27 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  console.log(isProduction)
+
+  const uri = isProduction
+  ? 'https://moneybuds-graphql.onrender.com/graphql' // Production URI
+  : 'http://192.168.1.87:4000/graphql'; // Local URI
+
+
+  const client = new ApolloClient({
+    // uri: 'http://192.168.1.87:4000/graphql',
+    // uri: 'https://moneybuds-graphql.onrender.com/graphql', 
+    uri,
+    cache: new InMemoryCache()
+  });
+  
+  console.log("apollo client", client)
   const colorScheme = useColorScheme();
   return (
     // <TamaguiProvider>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {/* <ApolloProvider client={client}> */}
+      <ApolloProvider client={client}>
       <AuthProvider>
         <QueryProvider>
       <Stack>
@@ -63,7 +80,7 @@ function RootLayoutNav() {
       </Stack>
       </QueryProvider>
       </AuthProvider>
-      {/* </ApolloProvider> */}
+      </ApolloProvider>
     </ThemeProvider>
     // </TamaguiProvider>
   );
