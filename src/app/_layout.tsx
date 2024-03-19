@@ -7,7 +7,6 @@ import { useEffect } from 'react';
 import AuthProvider from '../providers/AuthProvider';
 import QueryProvider from '../providers/QueryProvider';
 import { useColorScheme } from '../components/useColorScheme'
-
 import { ApolloClient, InMemoryCache, ApolloProvider, gql } from '@apollo/client';
 
 export {
@@ -49,7 +48,6 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const isProduction = process.env.NODE_ENV === 'production';
-  console.log(isProduction)
 
   const uri = isProduction
   ? 'https://moneybuds-graphql.onrender.com/graphql' // Production URI
@@ -57,13 +55,10 @@ function RootLayoutNav() {
 
 
   const client = new ApolloClient({
-    // uri: 'http://192.168.1.87:4000/graphql',
-    // uri: 'https://moneybuds-graphql.onrender.com/graphql', 
     uri,
     cache: new InMemoryCache()
   });
   
-  console.log("apollo client", client)
   const colorScheme = useColorScheme();
   return (
     // <TamaguiProvider>
@@ -71,13 +66,13 @@ function RootLayoutNav() {
       <ApolloProvider client={client}>
       <AuthProvider>
         <QueryProvider>
-      <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="auth" options={{ headerShown: false }} />
-          <Stack.Screen name="add-expense" options={{ presentation: "modal", headerShown: false }} />
-          {/* <Stack.Screen name="add-friends" options={{ presentation: "modal" }} /> */}
-          {/* <Stack.Screen name="add-groups" options={{ presentation: "modal" }} /> */}
-      </Stack>
+        <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="auth" options={{ headerShown: false }} />
+            <Stack.Screen name="add-expense" options={{ presentation: "modal", headerShown: false }} />
+            {/* <Stack.Screen name="add-friends" options={{ presentation: "modal" }} /> */}
+            {/* <Stack.Screen name="add-groups" options={{ presentation: "modal" }} /> */}
+        </Stack>
       </QueryProvider>
       </AuthProvider>
       </ApolloProvider>
