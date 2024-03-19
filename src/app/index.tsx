@@ -13,10 +13,8 @@ import { AppRegistry } from 'react-native';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import { useQuery, gql } from '@apollo/client';
 
-// const client = new ApolloClient({
-//   uri: 'http://192.168.1.87:4000/graphql',
-//   cache: new InMemoryCache()
-// });
+
+// console.log(client)
 
 // client
 //   .query({
@@ -31,28 +29,40 @@ import { useQuery, gql } from '@apollo/client';
 //   })
 //   .then((result) => console.log(result.data.profiles));
 
-const GET_USERS = gql`
-  query GetUsers {
-      profiles {
-        id
-        username
-      }
-  }
-`;
+// const GET_USERS = gql`
+//   query GetUsers {
+//       profiles {
+//         id
+//         username
+//       }
+//   }
+// `;
+
+// const GET_USER = gql`
+//   query GetUser($id: ID!) {
+//     profile(id: $id) {
+//       id,
+//       username
+//     }
+//   }
+// `
 
 export default function Index() {
   const {session, profile} = useAuth()
 
-  const {error, data} = useQuery(GET_USERS)
-  console.log(data)
+  // const {loading, error, data} = useQuery(GET_USERS)
+  // if (error) {
+  //   console.log(error)
+  // }
+  // console.log("data here", data)
+
 
   if (!session) {
     return <Redirect href={'/auth/sign-in'}/>
   }
-  // return <Redirect href='/(tabs)/groups' />
   return (
-    <View>
-      <Text>Hello!</Text>
-    </View>
-  )
+      <View>
+        <Text>Hello!</Text>
+      </View>
+    )
 }

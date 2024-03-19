@@ -30,11 +30,12 @@ export default function AddExpenseModal() {
   useEffect(() => {
     // console.log("in useeffect", userDetails)
     if (participants.length === 0) {
-      participants.push(userDetails)
+      if(userDetails !== undefined) {
+        participants.push(userDetails)
+      }
     }
-  }, [])
+  }, [participants, userDetails])
 
-  // console.log(participants)
 
   const handleInputChange = (text:string) => {
     setSearchTerm(text)
@@ -81,7 +82,6 @@ export default function AddExpenseModal() {
                         setSelectedFriend(item)
                         setIsSelected(true)
                         setParticipants([...participants, item])
-
                       }} 
                         style={{ borderWidth: 1, borderColor: "#E0DFDB", paddingVertical: 15, marginBottom:10 }}>
                         <Text>{item.username}</Text>

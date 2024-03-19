@@ -13,10 +13,9 @@ interface ExpenseFormProps {
 }
 
 export default function ExpenseForm({participants, selectedFriend, setIsSelected}: ExpenseFormProps) {
-    const [description, setDescription] = useState("");
-    const [amount, setAmount] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+    const [amount, setAmount] = useState<number>(0);
     const [showSplitTypes, setShowSplitTypes] = useState<boolean>(false)
-    console.log(participants)
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString("en-GB", {
@@ -28,21 +27,27 @@ export default function ExpenseForm({participants, selectedFriend, setIsSelected
 
     
     const validateExpenseForm = () => {
-        if (description !== '' && amount !== '') {
+        if (description !== '' && amount > 0) {
             setShowSplitTypes(true)
         } else {
             Alert.alert('Oops! Enter a description and amount first')
         }
     }
+
+    const handleAmountChange = (text:string) => {
+        const parsedAmount = parseFloat(text)
+        if (!isNaN(parsedAmount)) { //if is a number
+            setAmount(parsedAmount)
+        } else {
+            Alert.alert('Enter a valid amount in numeric format')
+        }
+    }
+
     return (
         <View className="pt-5">
             <Stack.Screen
                 options={{
-                    headerRight: () => (
-                        <TouchableOpacity className="border border-black rounded-3xl p-1 bg-[#EDF76A]">
-                          <Ionicons name="checkmark" size={30} color="black" />
-                        </TouchableOpacity>
-                      ), 
+                    
                       headerLeft: () => (
                         <Link href="../">
                           <EvilIcons name="close" size={24} color="black" />
@@ -51,7 +56,7 @@ export default function ExpenseForm({participants, selectedFriend, setIsSelected
                 }}/>
 
             {showSplitTypes ? (
-                <SplitTypes setShowSplitTypes={setShowSplitTypes} amount={amount} participants={participants}/>
+                <SplitTypes setShowSplitTypes={setShowSplitTypes} amount={amount} participants={participants} description={description}/>
             ) : (
             <View>
                 <View style={{ borderBottomWidth: 1, borderBottomColor: 'gray', padding:10, flexDirection: 'row', width:'100%'}}>
@@ -68,7 +73,7 @@ export default function ExpenseForm({participants, selectedFriend, setIsSelected
                             </View>
                             <View className="bg-[#FDF3FD] rounded-b-xl border border-t-[0.5px] p-3 pt-0 w-full">
                                 <TextInput className="border-b-[1px] text-lg text-black p-2" placeholder="Enter a description" placeholderTextColor="gray"  value={description} onChangeText={text=> setDescription(text)}/>
-                                <TextInput className="border-b-[1px] text-lg text-black p-2" placeholder="$0.00" placeholderTextColor="gray" value={amount} onChangeText={text => setAmount(text)} keyboardType="numeric" />
+                                <TextInput className="border-b-[1px] text-lg text-black p-2" placeholder="$0.00" placeholderTextColor="gray" value={amount !== undefined ? amount.toString() : ""} onChangeText={handleAmountChange} keyboardType="numeric" />
                             </View>
                         </View> 
                  </View>
