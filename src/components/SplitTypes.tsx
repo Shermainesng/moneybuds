@@ -17,9 +17,7 @@ type SplitTypes = {
 
 
 export default function SplitTypes ({setShowSplitTypes, amount, participants, description}: SplitTypes) {
-    const {session} = useAuth()
-    const userId: string = session?.user.id !== undefined ? session.user.id.toString() : '';
-    // const [payer, setPayer] = useState<User>(participants[0])
+    const router = useRouter();
     const [payerIndex, setPayerIndex] = useState<number>(0)
     const [percentagesToSplitCost, setPercentagesToSplitCost] = useState<number[]>([])
     const [isOwed, setIsOwed] = useState<number[]>(Array(participants.length).fill(0));
@@ -27,36 +25,59 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
     const [isOwedUpdated, setIsOwedUpdated] = useState<boolean>(false);
     const [owesUpdated, setOwesUpdated] = useState<boolean>(false);
     const [expenseId, setExpenseId] = useState<number>()
-//    const [addExpense, { data, loading, error }] = useApolloMutation(ADD_EXPENSE)
-    const [addExpense, {loading, error}] = useMutation(ADD_EXPENSE, {
+    const [expenseMembersAdded, setExpenseMembersAdded] = useState<boolean>(false)
+
+    const [addExpense, {loading: expenseLoading, error: expenseError}] = useMutation(ADD_EXPENSE, {
         update(cache, {data: {addExpense}}) {
             console.log("newly added expense", addExpense)
             setExpenseId(parseInt(addExpense.id))
         }
     } )
 
-    const [addExpenseMember] = useMutation(ADD_EXPENSEMEMBER)
-
+    const [addExpenseMember, {loading: memberLoading, error: memberError}] = useMutation(ADD_EXPENSEMEMBER, {
+        onCompleted: (data) => {
+            console.log("Expense members added successfully:", data);
+            setExpenseMembersAdded(true); // Update UI state or perform actions
+          },
+    });
+    
+    //FIVE
+    //once expense is added and expenseID is set, call the mutation to add expense member 
     useEffect(() => {
-        if (expenseId) {
-            // Construct an array of ExpenseMemberInput objects
-            const expenseMemberInput = participants.map((participant) => ({
-                expense_id: expenseId,
-                member_id: participant.id,
-                isOwed: participant.isOwed,
-                owes: participant.owes
-            }));
-
-            // Call addExpenseMember mutation with the constructed input
-            addExpenseMember({
-                variables: {
-                    input: expenseMemberInput
-                }
-            });
-        }
+        console.log("in addExpenseMember useEffect");
+        addExpenseMembers(); // Call the separate async function
     }, [expenseId]);
 
-   const router = useRouter();
+    
+      //SIX
+      //add each person to expense members table
+    async function addExpenseMembers() {
+        if (expenseId) {
+            // Construct an array of ExpenseMemberInput objects
+            const expenseMemberInput = participants.map((participant, index) => ({
+                expense_id: expenseId,
+                member_id: participant.id,
+                isOwed: isOwed[index],
+                owes: owes[index],
+            }));
+
+            console.log(expenseMemberInput)
+
+            try {
+                // Call addExpenseMember mutation with the constructed input
+                await addExpenseMember({
+                    variables: {
+                        input: expenseMemberInput,
+                    },
+                });
+            } catch (error) {
+                console.error("Error adding expense members:", error);
+            }
+            if (memberError) {
+                console.error("GraphQL error", memberError);
+            }
+        }
+    }
 
     //set array of percentages when page first loads
     useEffect(() => {
@@ -64,13 +85,14 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
         setPercentagesToSplitCost(initialPercentages)
     }, [participants])
 
-    // navigate to friends tab once expense submitted 
-    // useEffect(() => {
-    //     if (data) {
-    //         console.log("expenseId", expenseId)
-    //         // router.replace('/(tabs)/friends')
-    //     }
-    // }, [data]);
+    //SEVEN
+    // navigate to friends tab once expense and expense members are inserted in db 
+    useEffect(() => {
+        if (expenseMembersAdded) {
+            console.log("completed")
+            router.replace('/(tabs)/friends')
+        }
+    }, [expenseMembersAdded]);
 
     //take in string and parse it to number to store in percentage array
     const handlePercentageChange = (text:string, index:number) => {
@@ -83,10 +105,9 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
         setPercentagesToSplitCost(newPercentages)
     }
 
+    //SECOND
     //calculate amount each person owes/isOwed
     const calculateAmountOwed = () => {
-        //go through each percentage and index, if index is payer index,
-        //calculate isOwed through percentage and add to array 
         percentagesToSplitCost.forEach((splitPercentage, index) => {
             const share = parseFloat(((splitPercentage / 100) * amount).toFixed(2));//calc each participant's share
 
@@ -107,29 +128,33 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
             }
         })
     }
-
-    //make sure the percentages add up to 100. if yes, add expense
-    //once expense is added in expense table, add in expense_member table for each member 
+    
+    //FIRST 
+    //make sure the percentages add up to 100. if yes, calculate each person's amt owed and is owned
     const validatePercentages = () => {
         const totalPercentage = percentagesToSplitCost.reduce((sum, percentage) => sum + percentage, 0);
         if (totalPercentage !== 100) {
             Alert.alert('Total percentage must be 100.');
         } else {
             calculateAmountOwed()
-            addingExpense()
         }
     }
 
+    //THREE
+    //once both isOwed and owes have been updated, add expense to expense table
     useEffect(() => {
         // Check if both isOwed and owes have been updated
         if (isOwedUpdated && owesUpdated) {
-            console.log(isOwed)
+            console.log("isOwed", isOwed)
+            console.log("owes", owes)
             addingExpense(); // Call addingExpense only if both are updated
             setIsOwedUpdated(false); // Reset flags
             setOwesUpdated(false);
         }
     }, [isOwedUpdated, owesUpdated]); // Run effect whenever flags change
 
+    //FOUR
+    //Add expense in expense table. 
     const addingExpense = async () => {
         console.log("in adding expense")        
         try {
@@ -147,11 +172,8 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
         } catch (error) {
             console.error("Error adding expense:", error);
         }
-        if (loading) {
-            return <ActivityIndicator/>
-        }
-        if (error) {
-            console.error("GraphQL Error:", error);
+        if (expenseLoading) {
+            console.error("GraphQL Error:", expenseLoading);
         }
     };
     
@@ -172,6 +194,7 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
                         </TouchableOpacity>
                       )
                 }}/>
+        {expenseLoading ||  memberLoading && <ActivityIndicator size="large" color="blue" />}
         <View className='flex-col items-center'>
             <View className='flex-col items-center border-b-2 border-black py-3 w-full'>
                 <Text>How was this expense split?</Text>
