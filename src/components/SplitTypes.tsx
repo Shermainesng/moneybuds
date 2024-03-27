@@ -172,8 +172,8 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
         } catch (error) {
             console.error("Error adding expense:", error);
         }
-        if (expenseLoading) {
-            console.error("GraphQL Error:", expenseLoading);
+        if (expenseError) {
+            console.error("GraphQL Error:", expenseError);
         }
     };
     

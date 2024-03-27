@@ -6,23 +6,44 @@ import { Link, Stack } from 'expo-router';
 import { supabase } from '@/src/lib/supabase';
 
 const SignUpScreen = () => {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState<boolean>(false)
 
   async function signUpWithEmail() {
     setLoading(true)
-    const {error} = await supabase.auth.signUp({
+    const {data, error} = await supabase.auth.signUp({
       email, 
       password
     })
     if (error) Alert.alert(error.message)
+    console.log(data.session?.user.id)
+
+    await supabase.from('profiles').update({ username, phone_number:phone}).eq('id', data.session?.user.id);
     setLoading(false)
   }
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Sign up' }} />
+
+      <Text style={styles.label}>Username</Text>
+      <TextInput
+        value={username}
+        onChangeText={setUsername}
+        placeholder="Jon Doe"
+        style={styles.input}
+      />
+
+      <TextInput
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="9999 9999"
+          style={styles.input}
+          keyboardType="numeric"
+      />
 
       <Text style={styles.label}>Email</Text>
       <TextInput

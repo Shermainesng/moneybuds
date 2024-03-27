@@ -60,9 +60,5 @@ export default function Index() {
   if (!session) {
     return <Redirect href={'/auth/sign-in'}/>
   }
-  return (
-      <View>
-        <Text>Hello!</Text>
-      </View>
-    )
+  return <Redirect href={'/(tabs)/friends'}/>
 }

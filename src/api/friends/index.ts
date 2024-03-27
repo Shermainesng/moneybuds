@@ -1,5 +1,23 @@
 import { supabase } from "@/src/lib/supabase";
 import {useQuery} from '@tanstack/react-query'
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+import { gql } from '@apollo/client';
+
+export const ADD_FRIEND = gql`
+  mutation AddFriend($input: AddFriendInput!) {
+    addFriend(input: $input)
+}
+`;
+
+export const GET_PROFILES_WITH_PHONE_NUMBERS = gql`
+    query GetUsers {
+      profiles {
+        id
+        username
+        phone_number
+      }
+}
+`
 
 export const useGetUserProfile = (userId: any) => {
     return useQuery({
