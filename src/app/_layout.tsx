@@ -45,19 +45,19 @@ export default function RootLayout() {
 
   return <RootLayoutNav />;
 }
+const isProduction = process.env.NODE_ENV === 'production';
 
-function RootLayoutNav() {
-  const isProduction = process.env.NODE_ENV === 'production';
+const uri = isProduction
+? 'https://moneybuds-graphql.onrender.com/graphql' // Production URI
+: 'http://192.168.1.87:4000/graphql'; // Local URI
 
-  const uri = isProduction
-  ? 'https://moneybuds-graphql.onrender.com/graphql' // Production URI
-  : 'http://192.168.1.87:4000/graphql'; // Local URI
-
-
-  const client = new ApolloClient({
+export const client = new ApolloClient({
     uri,
     cache: new InMemoryCache()
   });
+
+
+function RootLayoutNav() {
   
   const colorScheme = useColorScheme();
   return (
