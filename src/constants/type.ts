@@ -20,6 +20,7 @@ export type User = {
   export type ExpenseMember = {
     id: string
     member_id: User 
+    expense_id: Expense
     isOwed: number 
     owes: number 
   }

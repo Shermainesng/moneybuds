@@ -44,6 +44,7 @@ export default function AddExpenseModal() {
     setFilteredData(filtered);
   }
 
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View className="flex-1 bg-pink-200 gap-y-2">

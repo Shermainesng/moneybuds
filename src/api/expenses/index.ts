@@ -31,3 +31,28 @@ mutation addExpenseMember($input: [ExpenseMemberInput]) {
   }
 }
 `
+export const GET_EXPENSE_IDS = gql`
+  query GetExpenseMember($id:ID!) {
+    expenseMembersByUserId(id: $id) 
+  }
+`
+export const GET_EXPENSE_MEMBERS_BY_EXPENSEID = gql`
+  query GetExpenseMemberByExpenseId($expense_ids: [ID!], $user_id: ID!) {
+    expenseMembersByExpenseIds(expense_ids: $expense_ids, user_id: $user_id) {
+        id
+        isOwed
+        owes
+        expense_id {
+          id 
+          payer_id {
+            id
+          }
+          description
+        }
+        member_id {
+          id
+          username
+        }
+    }
+  }
+`
