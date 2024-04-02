@@ -31,14 +31,16 @@ mutation addExpenseMember($input: [ExpenseMemberInput]) {
   }
 }
 `
-export const GET_EXPENSE_IDS = gql`
-  query GetExpenseMember($id:ID!) {
-    expenseMembersByUserId(id: $id) 
-  }
-`
+//given a user id, get all the expense IDs from the Expense Member table that user is a part of
+// export const GET_EXPENSE_IDS = gql`
+//   query GetExpenseMember($id:ID!) {
+//     expenseMembersByUserId(id: $id) 
+//   }
+// `
+//from the array of expense IDs, query the Expense Member table again and get expense members details for those expense IDs, and filter out those where member_id === user.id
 export const GET_EXPENSE_MEMBERS_BY_EXPENSEID = gql`
-  query GetExpenseMemberByExpenseId($expense_ids: [ID!], $user_id: ID!) {
-    expenseMembersByExpenseIds(expense_ids: $expense_ids, user_id: $user_id) {
+  query GetExpenseMemberByExpenseId($user_id: ID!) {
+    expenseMembersByExpenseIds(user_id: $user_id) {
         id
         isOwed
         owes

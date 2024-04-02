@@ -4,12 +4,11 @@ import { Link, Stack } from "expo-router";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 // import { useFriendIDs } from "@/src/api/friends";
 // import { useFetchFriendList } from "@/src/api/friends";
-import { useGetFriendsList, useGetFriendsProfiles } from "@/src/api/friends";
 import FriendsListItem from "@/src/components/FriendsListItem";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useQuery } from "@apollo/client";
-import { GET_EXPENSE_IDS, GET_EXPENSE_MEMBERS_BY_EXPENSEID } from "@/src/api/expenses";
-import { ExpenseMember, User } from "@/src/constants/type";
+import { GET_EXPENSE_MEMBERS_BY_EXPENSEID } from "@/src/api/expenses";
+import { ExpenseMember, User, FriendExpense } from "@/src/constants/type";
 import { client } from "../../_layout";
 
 
@@ -20,48 +19,33 @@ export default function FriendsScreen() {
     const [expenseMembers, setExpenseMembers] = useState<ExpenseMember[]>()
     const amountsOwedToFriend: Record<string, number> = {}; //define the type of this object 
     const amountsOwedByFriend: Record<string, number> = {}
-    const overallAmtsOwed: Record<string, number> = {}
+    const [expensesWithFriends, setExpensesWithFriends] = useState<FriendExpense[]>()
     
-    const {loading: getExpenseIDsLoading, error: getExpenseIDsError, data: getExpenseIDs} = useQuery(GET_EXPENSE_IDS, {
-        variables: {id:userId}
+    const {loading: getExpenseMembersLoading, error: getExpenseMembersError, data: getExpenseMembers} = useQuery(GET_EXPENSE_MEMBERS_BY_EXPENSEID, {
+        variables: {user_id:userId}, 
+        fetchPolicy: 'no-cache',
     });
 
-    //getting expense IDs for expenses where user is a part of 
+    // //got list of expenseMember data for each friend in the same expense that user is a part of
     useEffect(() => {
-        const fetchExpenseMembers = async()=> {
-            if (getExpenseIDs && getExpenseIDs.expenseMembersByUserId) { // Check for both data and property
-                const expenseIds = getExpenseIDs.expenseMembersByUserId || [];
-                // console.log("array of IDs", expenseIds)
-                try {
-                    const { data } = await client.query({
-                        query: GET_EXPENSE_MEMBERS_BY_EXPENSEID,
-                        variables: { expense_ids: expenseIds, user_id: userId }
-                    });
-                    if (data && data.expenseMembersByExpenseIds) {
-                        // console.log("Expense members for expense ID", ":", data.expenseMembersByExpenseIds);
-                        setExpenseMembers(data.expenseMembersByExpenseIds)
-                    }
-                } catch (error) {
-                    console.error("Error fetching expense members:", error);
-                }
-            }
+        if (getExpenseMembersLoading) return; // Exit early if data is loading
+        if (getExpenseMembersError) {
+          console.error("Error fetching expense members:", getExpenseMembersError);
+          return; // Handle error gracefully (display error message, etc.)
         }
-        fetchExpenseMembers()
-      }, [getExpenseIDs]);
-
-      useEffect(() => {
-        if (expenseMembers && expenseMembers.length>0) {
-            // console.log("expense members set:", expenseMembers)
+        const expenseMembers = getExpenseMembers?.expenseMembersByExpenseIds || []; // Destructure and handle potential undefined data     
+        console.log("new expense members", expenseMembers) 
+        setExpenseMembers(expenseMembers)
+        if (expenseMembers.length > 0) {
             calculateSplitExpenses()
         }
-      }, [expenseMembers])
+      }, [getExpenseMembersLoading, getExpenseMembersError, expenseMembers]); // Only run when loading state or error changes
 
-      const calculateSplitExpenses = () => {
-        console.log("reached calculate split expenses")
-        
+    //   //for each expense member row, add it to how much each friend owes/ is Owed
+      const calculateSplitExpenses = () => {        
         expenseMembers?.forEach((expenseMember) => {
-            const memberIdString = JSON.stringify(expenseMember.member_id);
-            console.log(memberIdString)
+            // console.log("name of friend", expenseMember.member_id.username)
+            const memberIdString = expenseMember.member_id.id;
             //friend is owed the amount
             if (expenseMember.isOwed > 0) { 
                 if (!amountsOwedToFriend[memberIdString]) {
@@ -77,26 +61,64 @@ export default function FriendsScreen() {
                 amountsOwedByFriend[memberIdString] += expenseMember.owes
             }
         })
-        // console.log(amountsOwedToFriend)
-        // console.log(amountsOwedByFriend)
+        console.log("Amt owed by friend", amountsOwedByFriend)
+        console.log("amt i owe", amountsOwedToFriend)
         calculateOverallAmtOwes()
       }
 
       const calculateOverallAmtOwes = () => {
-        Object.keys(amountsOwedToFriend).forEach((friend) => {
-            const amountOwedToYou = amountsOwedByFriend[friend] || 0
-            const amountYouOwe = amountsOwedToFriend[friend] || 0
-            overallAmtsOwed[friend] = amountOwedToYou - amountYouOwe //overall amt that each person owes me 
-        })
-        console.log("overall oweing", overallAmtsOwed)
+        const overallAmtsOwed: Record<string, number> = {} //array of hashsets
+        // Object.keys(amountsOwedToFriend).forEach((friend) => {
+        //     const amountOwedToYou = amountsOwedByFriend[friend] || 0
+        //     const amountYouOwe = amountsOwedToFriend[friend] || 0
+        //     overallAmtsOwed[friend] = amountOwedToYou - amountYouOwe //overall amt that each person owes me (if neg means i owe them)
+        // })
+        for (const friend in amountsOwedByFriend) {
+            const amountOwedToYou = amountsOwedByFriend[friend] || 0.0
+            const amountYouOwe = amountsOwedToFriend[friend] || 0.0
+
+            overallAmtsOwed[friend] = amountOwedToYou - amountYouOwe 
+        }
+        //make sure friends in both arrays are included 
+        for (const friend in amountsOwedToFriend) {
+            if (!overallAmtsOwed[friend]) {
+                const amountOwedToYou = 0.0
+                const amountYouOwe = amountsOwedToFriend[friend] || 0.0
+
+                overallAmtsOwed[friend] = amountOwedToYou-amountYouOwe
+            }
+        }
+
+        console.log("overall amt owed", overallAmtsOwed)
+        // Object.entries converts it into an array of key-value pairs: [["6634", 11], ['332',4]]
+        //.map(function([userId, amy])) => apply each key-value pair array to this mapping function that takes in 2 arguments and returns objects
+        // transforms the array into: [{id: '..', amt: 3}, {id:'...', amt: 3}]
+        const expensesWithFriends = Object.entries(overallAmtsOwed).map(([userId, amount]) => ({
+            id: userId,
+            amt: amount,
+          }));
+          
+          setExpensesWithFriends(expensesWithFriends)
+          console.log(expensesWithFriends)
       }
+
 
       //iterate over overallAmtsOwed and pass each to <friend> component
     return (
         <View className="flex-1 bg-purple-300">
-            
-            {/* <FlatList data={friends} renderItem={({ item }) => <FriendsListItem item={item} />} onEndReachedThreshold={1} contentInsetAdjustmentBehavior="automatic" /> */}
 
+            <FlatList data={expensesWithFriends} 
+                renderItem={({ item }) => (
+                    <FriendsListItem
+                      amt={item.amt} // Destructure amt from item
+                      id={item.id} // Destructure id from item
+                      keyExtractor={item => item.id} // Key extractor remains the same
+                    />
+                  )}
+                  onEndReachedThreshold={1}
+                  contentInsetAdjustmentBehavior="automatic"
+            />
+            
             <Link href="/add-expense/" asChild>
             <Pressable className="border border-black rounded-full bg-[#EDF76A] absolute bottom-[2px] p-2 right-[41vw] z-50">
             <Ionicons name="add" size={35} color="black" />
@@ -107,4 +129,4 @@ export default function FriendsScreen() {
             </View>
         </View>
     )
-} 
+}

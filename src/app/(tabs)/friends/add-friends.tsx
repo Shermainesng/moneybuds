@@ -5,7 +5,7 @@ import { Ionicons, AntDesign} from "@expo/vector-icons";
 import * as Contacts from 'expo-contacts'
 // import { useGetContactsWithAccounts } from "@/src/api/friends";
 import { User } from "@/src/constants/type";
-import { ADD_FRIEND, GET_PROFILES_WITH_PHONE_NUMBERS } from "@/src/api/friends";
+import { ADD_FRIEND, GET_FRIENDS, GET_PROFILES_WITH_PHONE_NUMBERS } from "@/src/api/friends";
 import { useQuery, useMutation } from '@apollo/client';
 import { useAuth } from "@/src/providers/AuthProvider";
 
@@ -14,7 +14,9 @@ export default function AddFriendsScreen() {
   const userId:string = session?.user.id
   const [contacts, setContacts] = useState<User[] | null>([])
 
-  const {loading: getProfilesLoading, error: getProfilesError, data: getProfiles} = useQuery(GET_PROFILES_WITH_PHONE_NUMBERS);
+  const {loading: getProfilesLoading, error: getProfilesError, data: getProfiles} = useQuery(GET_PROFILES_WITH_PHONE_NUMBERS, {
+    fetchPolicy: 'network-only',
+  });
   const [addFriend, {loading, error:addFriendError}] = useMutation(ADD_FRIEND)
 
   //when component first loads, render list of contacts that have an account
