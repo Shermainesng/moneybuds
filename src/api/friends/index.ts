@@ -19,102 +19,120 @@ export const GET_PROFILES_WITH_PHONE_NUMBERS = gql`
 }
 `
 
-export const useGetUserProfile = (userId: any) => {
-    return useQuery({
-        queryKey: ['user', userId], 
-        queryFn:async () => {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('id, avatar_url, username')
-                .eq('id', userId);
-        
-            // console.log("self list", data[0]);
-        
-            if (error) {
-                throw new Error(error.message);
-            }
-        
-            return data[0]
+export const GET_USER = gql`
+    query getUser($id: ID!) {  
+        profile(id: $id) {
+        id
+        username
         }
-    });
 }
-//get friendIDs of user
-export const useGetFriendsList= (userId:any) => {
-    return useQuery({
-        queryKey: ['friends', userId], 
-        queryFn:async () => {
-            const { data, error } = await supabase
-                .from('friends')
-                .select('friend_id')
-                .eq('user_id', userId);
-        
-            // console.log("friends list", data);
-        
-            if (error) {
-                throw new Error(error.message);
-            }
-        
-            return data.map(d => d.friend_id)
+`
+
+export const GET_FRIENDS = gql`
+    query getFriends($id: ID!) {
+        friends(id: $id) {
+        id
+        username
         }
-    });
-  };
+    }
+`
+
+// export const useGetUserProfile = (userId: any) => {
+//     return useQuery({
+//         queryKey: ['user', userId], 
+//         queryFn:async () => {
+//             const { data, error } = await supabase
+//                 .from('profiles')
+//                 .select('id, avatar_url, username')
+//                 .eq('id', userId);
+        
+//             // console.log("self list", data[0]);
+        
+//             if (error) {
+//                 throw new Error(error.message);
+//             }
+        
+//             return data[0]
+//         }
+//     });
+// }
+//get friendIDs of user
+// export const useGetFriendsList= (userId:any) => {
+//     return useQuery({
+//         queryKey: ['friends', userId], 
+//         queryFn:async () => {
+//             const { data, error } = await supabase
+//                 .from('friends')
+//                 .select('friend_id')
+//                 .eq('user_id', userId);
+        
+//             // console.log("friends list", data);
+        
+//             if (error) {
+//                 throw new Error(error.message);
+//             }
+        
+//             return data.map(d => d.friend_id)
+//         }
+//     });
+//   };
   
   //for each friend ID, get friend's details
-  export const useGetFriendDetails = (userId:any) => {
-    return useQuery({
-        queryKey: ['friend', userId], 
-        queryFn:async () => {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('username, avatar_url')
-                .eq('id', userId)
-                .single()
+//   export const useGetFriendDetails = (userId:any) => {
+//     return useQuery({
+//         queryKey: ['friend', userId], 
+//         queryFn:async () => {
+//             const { data, error } = await supabase
+//                 .from('profiles')
+//                 .select('username, avatar_url')
+//                 .eq('id', userId)
+//                 .single()
                                 
-                if (error) {
-                    throw new Error(error.message);
-                }
+//                 if (error) {
+//                     throw new Error(error.message);
+//                 }
 
-                return Array.isArray(data) ? data[0] : data;
-        }
-    })
-  }
+//                 return Array.isArray(data) ? data[0] : data;
+//         }
+//     })
+//   }
 
-  export const useGetFriendsProfiles= (friendIds: []) => {
-    return useQuery({
-        queryKey: ['allFriends', friendIds], 
-        queryFn:async () => {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('id, username, avatar_url')
-                .in('id', friendIds)
+//   export const useGetFriendsProfiles= (friendIds: []) => {
+//     return useQuery({
+//         queryKey: ['allFriends', friendIds], 
+//         queryFn:async () => {
+//             const { data, error } = await supabase
+//                 .from('profiles')
+//                 .select('id, username, avatar_url')
+//                 .in('id', friendIds)
              
-            // console.log("friends list", data);
+//             // console.log("friends list", data);
         
-            if (error) {
-                throw new Error(error.message);
-            }
+//             if (error) {
+//                 throw new Error(error.message);
+//             }
         
-            return data
-        }
-    });
-  };
+//             return data
+//         }
+//     });
+//   };
 
   //getting phone numbers of all my users with phone numbers
-  export const useGetContactsWithAccounts = () => {
-    return useQuery({
-        queryKey: ['existingPhones'], 
-        queryFn:async () => {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .not('phone_number', 'is', null)
-                // console.log("existing users", data)
+//   export const useGetContactsWithAccounts = () => {
+//     return useQuery({
+//         queryKey: ['existingPhones'], 
+//         queryFn:async () => {
+//             const { data, error } = await supabase
+//                 .from('profiles')
+//                 .select('*')
+//                 .not('phone_number', 'is', null)
+//                 // console.log("existing users", data)
                 
-                if (error) {
-                    throw new Error(error.message);
-                }
+//                 if (error) {
+//                     throw new Error(error.message);
+//                 }
 
-                return data
-        }
-    })
-  }
+//                 return data
+//         }
+//     })
+//   }

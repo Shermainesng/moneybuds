@@ -1,32 +1,45 @@
 import { StyleSheet, Text, Pressable, View, Image,ActivityIndicator} from "react-native";
 import { Link } from "expo-router";
-import { useGetFriendDetails } from "../api/friends";
+import { useState , useEffect} from "react";
+import { FriendExpense, User } from "../constants/type";
+import { GET_USER } from "../api/friends";
+import { useQuery } from "@apollo/client";
 
-// export const defaultAvatar = () => {
-//   return <Image source={require("../../assets/images/emoji.png")}/>
-// }
-
-// type Friend={
-//   username:string
-//   avatar_url:string | null
-// }
 export const defaultAvatarPath = require("../../assets/images/emoji.png")
 
-const FriendsListItem = ({item}: any) => {
-  console.log(item)
+const FriendsListItem = ({id, amt}: FriendExpense) => {
+  // console.log("received in friendlistitem", id)
+  const [userDetails, setUserDetails] = useState<User>()
+  
+  const { loading: getUserLoading, error: getUserError, data } = useQuery(GET_USER, {
+    variables: { id: id }, 
+    onCompleted: (data) => {
+      console.log("user data", data)
+      setUserDetails(data.profile)
+    }
+  });
+
+
 
     return (
       <View>
-        <Link href={`/(tabs)/friends/${item.username}`} asChild>
+        <Link href={`/(tabs)/friends/${userDetails?.username}`} asChild>
           <Pressable style={styles.friendContainer}>
             <View style={styles.friendTitle}>
-              <Image source={item.avatar_url || defaultAvatarPath} style={{width: 30, height:30}}/>
-              <Text style={styles.friendName}>{item.username}</Text>
+              <Image source={userDetails?.avatar_url || defaultAvatarPath} style={{width: 30, height:30}}/>
+              <Text style={styles.friendName}>{userDetails?.username}</Text>
             </View>
     
             <View style={styles.friendSubtitle}>
-              {/* <Text style={styles.subValue}>{item.status}</Text> */}
-              {/* <Text style={styles.subValue}>${item.amount}</Text> */}
+              {amt > 0 ?
+                <Text className="text-green-700">
+                  owes you ${amt}
+                </Text>: 
+                 <Text className="text-red-700">
+                  you owe ${Math.abs(amt)}
+               </Text>
+              }
+          
            </View>
           </Pressable>
         </Link>

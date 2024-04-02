@@ -24,3 +24,9 @@ export type User = {
     isOwed: number 
     owes: number 
   }
+
+
+export type FriendExpense = {
+  id: string
+  amt: number
+}
