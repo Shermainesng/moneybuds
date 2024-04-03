@@ -8,6 +8,11 @@ export type User = {
     website: string | null;
   }
 
+  export type Group = {
+    id: string
+    name: string
+    created_by: User
+  }
 
   export type Expense = {
     id: string | null
