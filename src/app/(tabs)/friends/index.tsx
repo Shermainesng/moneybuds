@@ -22,7 +22,7 @@ export default function FriendsScreen() {
     const [expensesWithFriends, setExpensesWithFriends] = useState<FriendExpense[]>()
     
     const {loading: getExpenseMembersLoading, error: getExpenseMembersError, data: getExpenseMembers} = useQuery(GET_EXPENSE_MEMBERS_BY_EXPENSEID, {
-        variables: {user_id:userId}, 
+        variables: {userId:userId}, 
         fetchPolicy: 'no-cache',
     });
 
@@ -68,11 +68,6 @@ export default function FriendsScreen() {
 
       const calculateOverallAmtOwes = () => {
         const overallAmtsOwed: Record<string, number> = {} //array of hashsets
-        // Object.keys(amountsOwedToFriend).forEach((friend) => {
-        //     const amountOwedToYou = amountsOwedByFriend[friend] || 0
-        //     const amountYouOwe = amountsOwedToFriend[friend] || 0
-        //     overallAmtsOwed[friend] = amountOwedToYou - amountYouOwe //overall amt that each person owes me (if neg means i owe them)
-        // })
         for (const friend in amountsOwedByFriend) {
             const amountOwedToYou = amountsOwedByFriend[friend] || 0.0
             const amountYouOwe = amountsOwedToFriend[friend] || 0.0
@@ -110,9 +105,9 @@ export default function FriendsScreen() {
             <FlatList data={expensesWithFriends} 
                 renderItem={({ item }) => (
                     <FriendsListItem
-                      amt={item.amt} // Destructure amt from item
-                      id={item.id} // Destructure id from item
-                      keyExtractor={item => item.id} // Key extractor remains the same
+                      amt={item.amt} 
+                      id={item.id} 
+                      key={item.id} // Key extractor remains the same
                     />
                   )}
                   onEndReachedThreshold={1}

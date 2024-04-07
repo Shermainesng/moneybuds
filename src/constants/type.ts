@@ -11,7 +11,7 @@ export type User = {
   export type Group = {
     id: string
     name: string
-    created_by: User
+    // created_by: User | null
   }
 
   export type Expense = {
