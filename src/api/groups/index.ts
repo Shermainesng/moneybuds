@@ -11,4 +11,23 @@ export const ADD_GROUP = gql`
       }
     }
 }
+`
+
+export const ADD_GROUP_MEMBERS = gql`
+  mutation AddGroupMembers($input: AddGroupMembersInput!) {
+    addGroupMember(input: $input) {
+      id
+     group_id {
+      id
+     }
+    }
+}
 `;
+export const GET_GROUPS = gql`
+  query GetGroups($userId: ID!) {
+    groups(userId: $userId) {
+      id 
+      name
+    }
+  }
+`

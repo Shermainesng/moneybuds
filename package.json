@@ -33,6 +33,8 @@
     "react": "^18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.73.4",
+    "react-native-bouncy-checkbox": "^4.0.0",
+    "react-native-btr": "^2.2.1",
     "react-native-elements": "^3.4.3",
     "react-native-paper": "^5.12.3",
     "react-native-screens": "~3.29.0",

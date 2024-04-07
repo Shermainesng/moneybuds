@@ -20,7 +20,8 @@ export default function GroupsLayout() {
         headerTintColor:'black',
         headerStyle: {
           backgroundColor: "#EDF76A"
-        }
+        },
+        headerBackButtonMenuEnabled:false
         }}/>
   
      

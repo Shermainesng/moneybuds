@@ -39,8 +39,8 @@ mutation addExpenseMember($input: [ExpenseMemberInput]) {
 // `
 //from the array of expense IDs, query the Expense Member table again and get expense members details for those expense IDs, and filter out those where member_id === user.id
 export const GET_EXPENSE_MEMBERS_BY_EXPENSEID = gql`
-  query GetExpenseMemberByExpenseId($user_id: ID!) {
-    expenseMembersByExpenseIds(user_id: $user_id) {
+  query GetExpenseMemberByExpenseId($userId: ID!) {
+    expenseMembersByExpenseIds(userId: $userId) {
         id
         isOwed
         owes

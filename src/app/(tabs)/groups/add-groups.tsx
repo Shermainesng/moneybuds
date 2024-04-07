@@ -3,7 +3,7 @@ import React, {useState, useEffect} from "react";
 import { Stack, useRouter} from "expo-router";
 import { Ionicons, Foundation } from "@expo/vector-icons";
 import { useMutation } from "@apollo/client";
-import { ADD_GROUP } from "@/src/api/groups";
+import { ADD_GROUP, ADD_GROUP_MEMBERS } from "@/src/api/groups";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { Group } from "@/src/constants/type";
 
@@ -13,13 +13,26 @@ export default function AddGroupsScreen() {
   const router = useRouter();
   const [groupName, setGroupName] = useState<string>("")
   const[group, setGroup] = useState<Group>()
+  const [addGroup, { loading, error: addGroupError }] = useMutation(ADD_GROUP, {
+    update(cache, { data: { addGroup } }) {
+      console.log("new group id:", addGroup.id);
+      setGroup(addGroup);
+      addGroupMember( {
+        variables: {
+          input: {
+            userIds: [userId],
+            group_id: addGroup.id,
+          },
+        },
+      })
+    },
+  });
 
-  const [addGroup, {loading, error:addGroupError}] = useMutation(ADD_GROUP, {
-    update(cache, {data: {addGroup}}) {
-      console.log("new group", addGroup)
-      setGroup(addGroup)
-  }
-  })
+  const [addGroupMember, { error: addGroupMembersError }] = useMutation(ADD_GROUP_MEMBERS, {
+    onCompleted: (data) => {
+      console.log("added myself to group:", data);
+    },
+  });
 
   const handleCreateGroup = async () => {
     console.log('adding group!')

@@ -11,7 +11,7 @@ import { useAuth } from "@/src/providers/AuthProvider";
 
 export default function AddFriendsScreen() {
   const {session} = useAuth()
-  const userId:string = session?.user.id
+  const userId:string | undefined = session?.user.id
   const [contacts, setContacts] = useState<User[] | null>([])
 
   const {loading: getProfilesLoading, error: getProfilesError, data: getProfiles} = useQuery(GET_PROFILES_WITH_PHONE_NUMBERS, {
