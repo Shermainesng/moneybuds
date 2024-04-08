@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import { GET_FRIENDS } from '@/src/api/friends';
-import { ADD_GROUP_MEMBERS } from '@/src/api/groups';
+import { ADD_GROUP_MEMBERS, GET_GROUP_MEMBERS } from '@/src/api/groups';
 import { useQuery, useMutation} from '@apollo/client';
 import { useAuth } from '@/src/providers/AuthProvider';
 import { User } from '@/src/constants/type';
@@ -17,17 +17,55 @@ export default function FriendsList () {
     const {groupId} = useLocalSearchParams()
     const router = useRouter();
     const [friends, setFriends] = useState<User[]>([])
+    const [currentMembers, setCurrentMembers] = useState<User[]>([])
+    const [friendsToDisplay, setFriendsToDisplay] = useState<User[]>([])
     const [selectedFriendIds, setSelectedFriendIds] = useState<String[]>([])
     const [friendsAdded, setFriendsAdded] = useState<Boolean>(false)
+    const [fetchFriendsDone, setFetchFriendsDone] = useState<Boolean>(false)
+    const [fetchGroupMembersDone, setFetchGroupMembersDone] = useState<Boolean>(false)
 
+    //get all friends of user
     const {loading: getFriendsLoading, error: getFriendsError, data: getFriends} = useQuery(GET_FRIENDS, {
         variables: {id:userId}, 
         fetchPolicy: 'network-only',
         onCompleted: ({friends}) => {
-            console.log("got friends:", friends);
             setFriends(friends);
+            setFetchFriendsDone(true)
         },
     });
+
+    //get current group members already in the group
+    const {loading:getGroupMembersLoading, error: getGroupMembersError, data: currentGroupMembers} = useQuery(GET_GROUP_MEMBERS, {
+        variables: {groupId: groupId},
+        fetchPolicy: 'network-only',
+        onCompleted: ({groupMembers}) => {
+            // console.log("group member", groupMembers)
+            setCurrentMembers(groupMembers)
+            setFetchGroupMembersDone(true)
+        }
+    })
+
+    useEffect(()=> {
+        if (fetchGroupMembersDone && fetchFriendsDone) {
+            getNonGroupFriends()
+        }
+    }, [fetchGroupMembersDone, fetchFriendsDone])
+
+    const getNonGroupFriends = () => {
+        console.log('non group friends')
+        let friendsNotInGroup = []
+        console.log("friends:", friends)
+        console.log("current members", currentMembers)
+        //display only friends that are not in group yet
+        const currentMemberIds = new Set(currentMembers.map(member => member.id))
+        for (const friend of friends) {
+            if (!currentMemberIds.has(friend.id)) { //if a friend is not in group
+                friendsNotInGroup.push(friend)
+            }
+        }
+        setFriendsToDisplay(friendsNotInGroup)
+        console.log("here are friends not in group", friendsNotInGroup)
+    }
 //TODO: for all friends that i got, check if friend alr belongs to group. if they do, don't display them
 
     const [addGroupMember, { error: addGroupMembersError, loading:addGroupMembersLoading }] = useMutation(ADD_GROUP_MEMBERS, {
@@ -92,8 +130,13 @@ export default function FriendsList () {
                 )
             }}
              />
-             {addGroupMembersLoading && <ActivityIndicator size='large' color='purple'/>}
-            {friends && friends.length>0 && friends.map((friend, index)=> (
+             {addGroupMembersLoading || getFriendsLoading || getGroupMembersLoading && <ActivityIndicator size='large' color='purple'/>}
+            {currentMembers && currentMembers.map((groupMember)=>(
+                <View>
+                    <Text>{groupMember.username} is already in the group</Text>
+                </View>
+            ))}
+            {friendsToDisplay && friendsToDisplay.map((friend, index)=> (
                 <View key={friend.id} className='flex flex-row'>
                     <CheckBox 
                         checked={selectedFriendIds.includes(friend.id)}

@@ -16,6 +16,7 @@ export default function ExpenseForm({participants, selectedFriend, setIsSelected
     const [description, setDescription] = useState<string>("");
     const [amount, setAmount] = useState<number>(0);
     const [showSplitTypes, setShowSplitTypes] = useState<boolean>(false)
+    // console.log("participants in expense form", participants)
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString("en-GB", {
