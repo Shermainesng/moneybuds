@@ -2,27 +2,30 @@ import { View, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyb
 import React, { useState, useEffect } from "react";
 import { Foundation } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
-import { Link, Stack } from "expo-router";
+import { Link, Stack, useLocalSearchParams} from "expo-router";
 import { EvilIcons } from "@expo/vector-icons";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { User } from "@/src/constants/type";
 import ExpenseForm from "@/src/components/ExpenseForm";
 import { GET_FRIENDS, GET_USER   } from "@/src/api/friends";
+import { GET_GROUP_MEMBERS } from "@/src/api/groups";
 import { useQuery } from "@apollo/client";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 export default function AddExpenseModal() {
   const {session} = useAuth()
-  const userId:string = session?.user.id
-  console.log("userId", userId)
-  const [filteredData, setFilteredData] = useState([])
+  const userId:string | undefined= session?.user.id
+const [filteredData, setFilteredData] = useState<User[]>([]);
   const[searchTerm, setSearchTerm] = useState('')
   const [selectedFriend, setSelectedFriend] = useState<User | null>(null)
   const [isSelected, setIsSelected] = useState<boolean>(false)
   const [friends, setFriends] = useState<User[]>([]) //array for list of all friends to choose from 
   const [participants, setParticipants] = useState<User[]>([]) //array of user objects (id, name ,avatar) for people involved 
+  const [isGroup, setIsGroup] = useState<Boolean>(false)
+  const [groupMembers, setGroupMembers]= useState<User[]>([])
+  const {groupId} = useLocalSearchParams()
 
 
+  //fetching friends list for NON GROUP
     const {loading: getUserLoading, error: getUserError, data: getUser} = useQuery(GET_USER, {
       variables: {id:userId}
   });
@@ -31,29 +34,43 @@ export default function AddExpenseModal() {
         fetchPolicy: 'network-only',
     });
 
-  // if (getFriendsLoading || getUserLoading) return <ActivityIndicator />;
-  // if (getFriendsError || getUserError) return <Text>Failed to fetch friends</Text>;
+  //fetching group members for GROUP
+  const {loading:getGroupMembersLoading, error: getGroupMembersError, data: currentGroupMembers} = useQuery(GET_GROUP_MEMBERS, {
+    variables: {groupId: groupId},
+    fetchPolicy: 'network-only',
+    onCompleted: ({groupMembers}) => {
+      const membersExcludeMe = groupMembers.filter((member: User) => member.id !== userId);
+      console.log("without me", membersExcludeMe)
+      setGroupMembers(membersExcludeMe); // Set the filtered data directly
+    }
+})
 
-
+useEffect(()=> {
+  if (groupId) {
+    console.log('groupId in add expense', groupId)
+    setIsGroup(true)
+  }
+}, [isGroup])
+  //
   // //add user into the participants list 
   useEffect(() => {
     if (getUserLoading || getUserError || getFriendsLoading || getFriendsError) {
       return; // Exit early if data is loading or there's an error
     }
-    // Update participants 
-    console.log("profile", getUser.profile)
+    // add myself into participants list 
     setParticipants(getUser?.profile ? [getUser.profile] : []);
   
     // Update friends
     console.log("friends", getFriends.friends)
     setFriends(getFriends.friends);
   }, [getUserLoading, getUserError, getFriendsLoading, getFriendsError]);
+  
 
   const handleInputChange = (text:string) => {
     setSearchTerm(text)
-    const filtered:User[] = friends.filter(item => item.username.toLowerCase().includes(text.toLowerCase())
-    );
-    setFilteredData(filtered);
+    let filtered = isGroup ? groupMembers : friends; 
+    filtered = filtered.filter(item => item.username.toLowerCase().includes(text.toLowerCase()));
+    setFilteredData(filtered); // Set the filtered array directly
   }
 
 
@@ -71,11 +88,6 @@ export default function AddExpenseModal() {
                 <EvilIcons name="close" size={24} color="black" />
               </Link>
             ),
-            // headerRight: () => (
-            //   <TouchableOpacity onPress={handleAddExpense} className="border border-black rounded-3xl p-1 bg-[#EDF76A]">
-            //     <Ionicons name="checkmark" size={30} color="black" />
-            //   </TouchableOpacity>
-            // )
           }}
         />
         {/* if no friend selected yet show list of friends  */}
@@ -86,11 +98,12 @@ export default function AddExpenseModal() {
                 <TextInput placeholder="Enter friend's names" value={searchTerm} placeholderTextColor="gray" onChangeText={handleInputChange} />
               </View>
 
-              <View style={{paddingLeft:10}}>
-                <Text style={{fontWeight:'bold'}}>Friends:</Text>
-                {friends && friends.length > 0 &&
+                {isGroup ? 
+                <View style={{paddingLeft:10}}>
+                <Text style={{fontWeight:'bold'}}>Group Members:</Text>
+                {groupMembers && groupMembers.length > 0 &&
                   <FlatList
-                      data={searchTerm === "" ? friends : filteredData}
+                      data={searchTerm === "" ? groupMembers : filteredData}
                       renderItem={({ item }) => (
                         <TouchableOpacity onPress={() => {
                           setSelectedFriend(item)
@@ -104,6 +117,26 @@ export default function AddExpenseModal() {
                     />
                 }
               </View>
+                :
+                <View style={{paddingLeft:10}}>
+                  <Text style={{fontWeight:'bold'}}>Friends:</Text>
+                  {friends && friends.length > 0 &&
+                    <FlatList
+                        data={searchTerm === "" ? friends : filteredData}
+                        renderItem={({ item }) => (
+                          <TouchableOpacity onPress={() => {
+                            setSelectedFriend(item)
+                            setIsSelected(true)
+                            setParticipants([...participants, item])
+                          }} 
+                            style={{ borderWidth: 1, borderColor: "#E0DFDB", paddingVertical: 15, marginBottom:10 }}>
+                            <Text>{item.username}</Text>
+                          </TouchableOpacity>
+                        )}
+                      />
+                  }
+                </View>
+                }
             </View>
           }
           {/* once a friend is selected, render the expense form component  */}

@@ -31,3 +31,12 @@ export const GET_GROUPS = gql`
     }
   }
 `
+
+export const GET_GROUP_MEMBERS = gql`
+  query GetGroupMembers($groupId: ID!) {
+    groupMembers(groupId: $groupId) {
+      id 
+      username
+    }
+  }
+`
