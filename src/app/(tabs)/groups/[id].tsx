@@ -3,14 +3,16 @@ import { Stack, useLocalSearchParams} from "expo-router"
 import {useState} from 'react'
 import { Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
+import FriendsScreen from "../friends"
 
 const GroupDetailsScreen = () => {
-    const {id: groupId} = useLocalSearchParams()
+    const {id} = useLocalSearchParams()
     const [showFriendsList, setShowFriendsList] = useState<boolean>(false)
-    const id = parseFloat(typeof groupId == 'string' ? groupId:groupId[0])
+    const groupId = id !== null ? parseInt(typeof id === 'string' ? id : id[0]) : null;
+
 
     return (
-        <View style={styles.container}>
+        <View className="flex-1 bg-purple-300">
             <Stack.Screen options={{title:'Group Details',
                 headerStyle: {
                     backgroundColor: "#EDF76A"
@@ -36,10 +38,12 @@ const GroupDetailsScreen = () => {
                 </Link>
             </View>
             
-            <Link href={{pathname:"/add-expense/", params:{groupId: groupId}}} asChild>
-            <Pressable className="border border-black rounded-full bg-[#EDF76A] absolute bottom-[2px] p-2 right-[41vw] z-50">
-            <Ionicons name="add" size={35} color="black" />
-            </Pressable>
+            <FriendsScreen groupId={groupId} isGroup={true}/>
+
+            <Link href={{pathname:"/add-expense/", params:{IDfromParams: groupId}}} asChild>
+                <Pressable className="border border-black rounded-full bg-[#EDF76A] absolute bottom-[2px] p-2 right-[41vw] z-50">
+                <Ionicons name="add" size={35} color="black" />
+                </Pressable>
             </Link> 
             <View className="border border-black rounded-full bg-black absolute bottom-[0px] p-2 right-[40vw] z-40">
                 <Ionicons name="add" size={35} color="black" />

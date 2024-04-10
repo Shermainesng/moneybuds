@@ -40,8 +40,8 @@ export default function IndexScreen() {
         <Pressable className="border border-black rounded-full bg-[#EDF76A] absolute bottom-[2px] p-2 right-[41vw] z-50">
           <Ionicons name="add" size={35} color="black" />
         </Pressable>
-      </Link> */}
-      {/* <View className="border border-black rounded-full bg-black absolute bottom-[0px] p-2 right-[40vw] z-40">
+      </Link>
+      <View className="border border-black rounded-full bg-black absolute bottom-[0px] p-2 right-[40vw] z-40">
         <Ionicons name="add" size={35} color="black" />
       </View> */}
     </View>

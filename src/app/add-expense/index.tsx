@@ -20,10 +20,20 @@ const [filteredData, setFilteredData] = useState<User[]>([]);
   const [isSelected, setIsSelected] = useState<boolean>(false)
   const [friends, setFriends] = useState<User[]>([]) //array for list of all friends to choose from 
   const [participants, setParticipants] = useState<User[]>([]) //array of user objects (id, name ,avatar) for people involved 
-  const [isGroup, setIsGroup] = useState<Boolean>(false)
+  const [isGroup, setIsGroup] = useState<boolean>(false)
   const [groupMembers, setGroupMembers]= useState<User[]>([])
-  const {groupId} = useLocalSearchParams()
+  const {IDfromParams} = useLocalSearchParams()
+  // console.log("group id from params", typeof IDfromParams)
+  const groupId = IDfromParams !== undefined ? parseInt(typeof IDfromParams == 'string' ? IDfromParams:IDfromParams[0]):null
 
+
+  //check if is group or not
+useEffect(()=> {
+  if (groupId) {
+    console.log('groupId in add expense', groupId)
+    setIsGroup(true)
+  }
+}, [isGroup, groupId])
 
   //fetching friends list for NON GROUP
     const {loading: getUserLoading, error: getUserError, data: getUser} = useQuery(GET_USER, {
@@ -45,12 +55,7 @@ const [filteredData, setFilteredData] = useState<User[]>([]);
     }
 })
 
-useEffect(()=> {
-  if (groupId) {
-    console.log('groupId in add expense', groupId)
-    setIsGroup(true)
-  }
-}, [isGroup])
+
   //
   // //add user into the participants list 
   useEffect(() => {
@@ -101,7 +106,7 @@ useEffect(()=> {
                 {isGroup ? 
                 <View style={{paddingLeft:10}}>
                 <Text style={{fontWeight:'bold'}}>Group Members:</Text>
-                {groupMembers && groupMembers.length > 0 &&
+                {groupMembers && groupMembers.length > 0 && //group members without me
                   <FlatList
                       data={searchTerm === "" ? groupMembers : filteredData}
                       renderItem={({ item }) => (
@@ -141,7 +146,7 @@ useEffect(()=> {
           }
           {/* once a friend is selected, render the expense form component  */}
           {isSelected && selectedFriend &&
-            <ExpenseForm participants={participants} selectedFriend={selectedFriend} setIsSelected={setIsSelected}/>} 
+            <ExpenseForm participants={participants} selectedFriend={selectedFriend} setIsSelected={setIsSelected} groupId={groupId}/>} 
         </View>
     </TouchableWithoutFeedback>
   );

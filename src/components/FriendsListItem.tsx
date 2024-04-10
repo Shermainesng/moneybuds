@@ -14,7 +14,6 @@ const FriendsListItem = ({id, amt}: FriendExpense) => {
   const { loading: getUserLoading, error: getUserError, data } = useQuery(GET_USER, {
     variables: { id: id }, 
     onCompleted: (data) => {
-      console.log("user data", data)
       setUserDetails(data.profile)
     }
   });

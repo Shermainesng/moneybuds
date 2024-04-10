@@ -10,13 +10,14 @@ interface ExpenseFormProps {
     participants: User[]
     selectedFriend: User
     setIsSelected: (value:boolean) => void
+    groupId: number | null
 }
 
-export default function ExpenseForm({participants, selectedFriend, setIsSelected}: ExpenseFormProps) {
+export default function ExpenseForm({participants, selectedFriend, setIsSelected, groupId}: ExpenseFormProps) {
     const [description, setDescription] = useState<string>("");
     const [amount, setAmount] = useState<number>(0);
     const [showSplitTypes, setShowSplitTypes] = useState<boolean>(false)
-    // console.log("participants in expense form", participants)
+    console.log("participants in expense form", participants)
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString("en-GB", {
@@ -57,7 +58,7 @@ export default function ExpenseForm({participants, selectedFriend, setIsSelected
                 }}/>
 
             {showSplitTypes ? (
-                <SplitTypes setShowSplitTypes={setShowSplitTypes} amount={amount} participants={participants} description={description}/>
+                <SplitTypes setShowSplitTypes={setShowSplitTypes} amount={amount} participants={participants} description={description} groupId={groupId}/>
             ) : (
             <View>
                 <View style={{ borderBottomWidth: 1, borderBottomColor: 'gray', padding:10, flexDirection: 'row', width:'100%'}}>
