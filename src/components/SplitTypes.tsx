@@ -13,10 +13,11 @@ type SplitTypes = {
     amount: number
     description: string
     participants: User[]
+    groupId: number | null
 }
 
 
-export default function SplitTypes ({setShowSplitTypes, amount, participants, description}: SplitTypes) {
+export default function SplitTypes ({setShowSplitTypes, amount, participants, description, groupId}: SplitTypes) {
     const router = useRouter();
     const [payerIndex, setPayerIndex] = useState<number>(0)
     const [percentagesToSplitCost, setPercentagesToSplitCost] = useState<number[]>([])
@@ -26,6 +27,8 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
     const [owesUpdated, setOwesUpdated] = useState<boolean>(false);
     const [expenseId, setExpenseId] = useState<number>()
     const [expenseMembersAdded, setExpenseMembersAdded] = useState<boolean>(false)
+    console.log("participants in split types", participants)
+    console.log("groupId in split types", groupId)
 
     const [addExpense, {loading: expenseLoading, error: expenseError}] = useMutation(ADD_EXPENSE, {
         update(cache, {data: {addExpense}}) {
@@ -44,8 +47,10 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
     //FIVE
     //once expense is added and expenseID is set, call the mutation to add expense member 
     useEffect(() => {
-        console.log("in addExpenseMember useEffect");
-        addExpenseMembers(); // Call the separate async function
+        if (expenseId) {
+            console.log("calling addExpenseMembers...");
+            addExpenseMembers(); // Call the separate async function
+        }
     }, [expenseId]);
 
     
@@ -61,7 +66,7 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
                 owes: owes[index],
             }));
 
-            console.log(expenseMemberInput)
+            console.log("expense member input", expenseMemberInput)
 
             try {
                 // Call addExpenseMember mutation with the constructed input
@@ -89,8 +94,11 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
     // navigate to friends tab once expense and expense members are inserted in db 
     useEffect(() => {
         if (expenseMembersAdded) {
-            console.log("completed")
-            router.replace('/(tabs)/friends')
+            if (groupId) {
+                router.replace(`/(tabs)/groups/${groupId}`)
+            } else {
+                router.replace('/(tabs)/friends')
+            }
         }
     }, [expenseMembersAdded]);
 
@@ -142,6 +150,7 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
 
     //THREE
     //once both isOwed and owes have been updated, add expense to expense table
+    //if isGroup, add groupId to the group_id column
     useEffect(() => {
         // Check if both isOwed and owes have been updated
         if (isOwedUpdated && owesUpdated) {
@@ -164,7 +173,8 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
                         payer_id: participants[payerIndex].id,
                         amount: amount,
                         description: description,
-                        date: "2024-03-16"
+                        date: "2024-03-16", 
+                        group_id: groupId !== null ? groupId:null
                     }
                 }
             });

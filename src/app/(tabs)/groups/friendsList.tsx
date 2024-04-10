@@ -132,7 +132,7 @@ export default function FriendsList () {
              />
              {addGroupMembersLoading || getFriendsLoading || getGroupMembersLoading && <ActivityIndicator size='large' color='purple'/>}
             {currentMembers && currentMembers.map((groupMember)=>(
-                <View>
+                <View key={groupMember.id}>
                     <Text>{groupMember.username} is already in the group</Text>
                 </View>
             ))}

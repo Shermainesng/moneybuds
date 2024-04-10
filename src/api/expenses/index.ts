@@ -58,3 +58,24 @@ export const GET_EXPENSE_MEMBERS_BY_EXPENSEID = gql`
     }
   }
 `
+
+export const GET_EXPENSE_MEMBERS_BY_GROUPID = gql`
+  query expenseMembersByGroupIds($groupId: ID!, $userId: ID!) {
+    expenseMembersByGroupIds(groupId: $groupId, userId: $userId) {
+        id
+        isOwed
+        owes
+        expense_id {
+          id 
+          payer_id {
+            id
+          }
+          description
+        }
+        member_id {
+          id
+          username
+        }
+    }
+  }
+`

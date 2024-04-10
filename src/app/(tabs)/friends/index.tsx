@@ -7,39 +7,59 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import FriendsListItem from "@/src/components/FriendsListItem";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useQuery } from "@apollo/client";
-import { GET_EXPENSE_MEMBERS_BY_EXPENSEID } from "@/src/api/expenses";
+import { GET_EXPENSE_MEMBERS_BY_EXPENSEID, GET_EXPENSE_MEMBERS_BY_GROUPID } from "@/src/api/expenses";
 import { ExpenseMember, User, FriendExpense } from "@/src/constants/type";
 import { client } from "../../_layout";
 
-
-export default function FriendsScreen() {
+type friendsProps = {
+    groupId: number | null
+    isGroup: boolean 
+}
+export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
     const {session} = useAuth()
     const userId = session?.user.id
     // const [expenseIDs, setExpenseIDs] = useState<String[]>([])
     const [expenseMembers, setExpenseMembers] = useState<ExpenseMember[]>()
+    const [expensesGroups, setExpensesGroups] = useState<ExpenseMember[]>()
     const amountsOwedToFriend: Record<string, number> = {}; //define the type of this object 
     const amountsOwedByFriend: Record<string, number> = {}
     const [expensesWithFriends, setExpensesWithFriends] = useState<FriendExpense[]>()
+    const [isCompleteFriends, setIsCompleteFriends ] = useState<boolean>(false)
+
     
+    console.log("index", groupId)
+    //for overall amount owed/is owed non-group + group 
     const {loading: getExpenseMembersLoading, error: getExpenseMembersError, data: getExpenseMembers} = useQuery(GET_EXPENSE_MEMBERS_BY_EXPENSEID, {
         variables: {userId:userId}, 
         fetchPolicy: 'no-cache',
+        onCompleted: ({expenseMembersByExpenseIds}) => {
+            if (!isGroup) {
+                console.log("friends transaction in friends/index", expenseMembersByExpenseIds) 
+                setExpenseMembers(expenseMembersByExpenseIds)
+                setIsCompleteFriends(true)
+            }
+        }
+    });
+    //for amount owed/is owed within individual groups
+    const {loading: getGroupExpensesLoading, error: getGroupExpensesError, data: getGroupExpenses} = useQuery(GET_EXPENSE_MEMBERS_BY_GROUPID, {
+        variables: {groupId:groupId, userId:userId}, 
+        fetchPolicy: 'no-cache',
+        onCompleted: ({expenseMembersByGroupIds}) => {
+            if(groupId) {
+                console.log("groups transaction in friends/index", expenseMembersByGroupIds)
+                setExpenseMembers(expenseMembersByGroupIds)
+                setIsCompleteFriends(true)
+            }
+        }
     });
 
-    // //got list of expenseMember data for each friend in the same expense that user is a part of
-    useEffect(() => {
-        if (getExpenseMembersLoading) return; // Exit early if data is loading
-        if (getExpenseMembersError) {
-          console.error("Error fetching expense members:", getExpenseMembersError);
-          return; // Handle error gracefully (display error message, etc.)
-        }
-        const expenseMembers = getExpenseMembers?.expenseMembersByExpenseIds || []; // Destructure and handle potential undefined data     
-        console.log("new expense members", expenseMembers) 
-        setExpenseMembers(expenseMembers)
-        if (expenseMembers.length > 0) {
+    useEffect(()=> {
+        if (isCompleteFriends) {
+            console.log("isGroup mode:", isGroup)
             calculateSplitExpenses()
         }
-      }, [getExpenseMembersLoading, getExpenseMembersError, expenseMembers]); // Only run when loading state or error changes
+
+    }, [isCompleteFriends])
 
     //   //for each expense member row, add it to how much each friend owes/ is Owed
       const calculateSplitExpenses = () => {        
@@ -114,14 +134,18 @@ export default function FriendsScreen() {
                   contentInsetAdjustmentBehavior="automatic"
             />
             
-            <Link href="/add-expense/" asChild>
-            <Pressable className="border border-black rounded-full bg-[#EDF76A] absolute bottom-[2px] p-2 right-[41vw] z-50">
-            <Ionicons name="add" size={35} color="black" />
-            </Pressable>
-            </Link> 
-            <View className="border border-black rounded-full bg-black absolute bottom-[0px] p-2 right-[40vw] z-40">
+            {!groupId &&
+            <View>
+                <Link href="/add-expense/" asChild>
+                <Pressable className="border border-black rounded-full bg-[#EDF76A] absolute bottom-[2px] p-2 right-[41vw] z-50">
                 <Ionicons name="add" size={35} color="black" />
+                </Pressable>
+                </Link> 
+                <View className="border border-black rounded-full bg-black absolute bottom-[0px] p-2 right-[40vw] z-40">
+                    <Ionicons name="add" size={35} color="black" />
+                </View>
             </View>
+            }
         </View>
     )
 }
