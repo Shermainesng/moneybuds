@@ -10,6 +10,8 @@ import ExpenseForm from "@/src/components/ExpenseForm";
 import { GET_FRIENDS, GET_USER   } from "@/src/api/friends";
 import { GET_GROUP_MEMBERS } from "@/src/api/groups";
 import { useQuery } from "@apollo/client";
+import {CheckBox} from 'react-native-btr'
+
 
 export default function AddExpenseModal() {
   const {session} = useAuth()
@@ -78,6 +80,15 @@ useEffect(()=> {
     setFilteredData(filtered); // Set the filtered array directly
   }
 
+  const handleCheckFriend = (item: User) => {
+    console.log('clicked on ', item.username)
+    const isItemSelected = participants.some(participant => participant.id === item.id); //is selected friend alr in the participants array
+    const updatedParticipants = isItemSelected
+      ? participants.filter(participant => participant.id !== item.id) // Remove if selected
+      : [...participants, item];
+
+      setParticipants(updatedParticipants)
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -93,6 +104,11 @@ useEffect(()=> {
                 <EvilIcons name="close" size={24} color="black" />
               </Link>
             ),
+            headerRight:()=> (
+              <TouchableOpacity onPress={() => setIsSelected(true)} className="border border-black rounded-3xl p-2 bg-[#EDF76A]">
+                <Text>Next</Text>
+              </TouchableOpacity>
+            )
           }}
         />
         {/* if no friend selected yet show list of friends  */}
@@ -110,14 +126,10 @@ useEffect(()=> {
                   <FlatList
                       data={searchTerm === "" ? groupMembers : filteredData}
                       renderItem={({ item }) => (
-                        <TouchableOpacity onPress={() => {
-                          setSelectedFriend(item)
-                          setIsSelected(true)
-                          setParticipants([...participants, item])
-                        }} 
-                          style={{ borderWidth: 1, borderColor: "#E0DFDB", paddingVertical: 15, marginBottom:10 }}>
+                        <View key={item.id} className='flex-row'>
+                          <CheckBox checked={participants.some(participant => participant.id === item.id)} onPress={()=>handleCheckFriend(item)}/>
                           <Text>{item.username}</Text>
-                        </TouchableOpacity>
+                        </View>
                       )}
                     />
                 }
@@ -125,28 +137,24 @@ useEffect(()=> {
                 :
                 <View style={{paddingLeft:10}}>
                   <Text style={{fontWeight:'bold'}}>Friends:</Text>
-                  {friends && friends.length > 0 &&
+                  {friends && friends.length>0 &&
                     <FlatList
-                        data={searchTerm === "" ? friends : filteredData}
-                        renderItem={({ item }) => (
-                          <TouchableOpacity onPress={() => {
-                            setSelectedFriend(item)
-                            setIsSelected(true)
-                            setParticipants([...participants, item])
-                          }} 
-                            style={{ borderWidth: 1, borderColor: "#E0DFDB", paddingVertical: 15, marginBottom:10 }}>
-                            <Text>{item.username}</Text>
-                          </TouchableOpacity>
-                        )}
-                      />
+                    data={searchTerm === "" ? friends : filteredData}
+                    renderItem={({ item }) => (
+                      <View key={item.id} className='flex-row'>
+                        <CheckBox checked={participants.some(participant => participant.id === item.id)} onPress={()=>handleCheckFriend(item)}/>
+                        <Text>{item.username}</Text>
+                      </View>
+                    )}
+                    />
                   }
                 </View>
                 }
             </View>
           }
           {/* once a friend is selected, render the expense form component  */}
-          {isSelected && selectedFriend &&
-            <ExpenseForm participants={participants} selectedFriend={selectedFriend} setIsSelected={setIsSelected} groupId={groupId}/>} 
+          {isSelected  &&
+            <ExpenseForm participants={participants}  setIsSelected={setIsSelected} groupId={groupId}/>} 
         </View>
     </TouchableWithoutFeedback>
   );

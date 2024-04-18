@@ -2,8 +2,6 @@ import { View, Text, Pressable, FlatList, ActivityIndicator} from "react-native"
 import {useState, useEffect} from 'react'
 import { Link, Stack } from "expo-router";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
-// import { useFriendIDs } from "@/src/api/friends";
-// import { useFetchFriendList } from "@/src/api/friends";
 import FriendsListItem from "@/src/components/FriendsListItem";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useQuery } from "@apollo/client";
@@ -15,26 +13,37 @@ type friendsProps = {
     groupId: number | null
     isGroup: boolean 
 }
+type MemberId = string
+type Amount = number
+
+type indivOwedAmts = {
+    [memberId: MemberId]: Amount //memberId as key, amount as value
+}
+type indivOwedBoolean = {
+    [memberId: MemberId]: boolean //memberId as key, amount as value
+}
+type OverallOwedAmts = {
+    [memberId: MemberId] : indivOwedAmts //an object of objects
+}
+type netOverallOwedBoolean = {
+    [member: MemberId] : indivOwedBoolean
+}
 export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
     const {session} = useAuth()
     const userId = session?.user.id
-    // const [expenseIDs, setExpenseIDs] = useState<String[]>([])
     const [expenseMembers, setExpenseMembers] = useState<ExpenseMember[]>()
     const [expensesGroups, setExpensesGroups] = useState<ExpenseMember[]>()
-    const amountsOwedToFriend: Record<string, number> = {}; //define the type of this object 
-    const amountsOwedByFriend: Record<string, number> = {}
-    const [expensesWithFriends, setExpensesWithFriends] = useState<FriendExpense[]>()
+    const amountsOwedToFriend: Record<string, string> = {};
+    const amountsOwedByFriend: Record<string, string> = {};
+    const [expensesWithFriends, setExpensesWithFriends] = useState<OverallOwedAmts>({})
     const [isCompleteFriends, setIsCompleteFriends ] = useState<boolean>(false)
 
-    
-    console.log("index", groupId)
     //for overall amount owed/is owed non-group + group 
     const {loading: getExpenseMembersLoading, error: getExpenseMembersError, data: getExpenseMembers} = useQuery(GET_EXPENSE_MEMBERS_BY_EXPENSEID, {
         variables: {userId:userId}, 
         fetchPolicy: 'no-cache',
         onCompleted: ({expenseMembersByExpenseIds}) => {
             if (!isGroup) {
-                console.log("friends transaction in friends/index", expenseMembersByExpenseIds) 
                 setExpenseMembers(expenseMembersByExpenseIds)
                 setIsCompleteFriends(true)
             }
@@ -46,7 +55,7 @@ export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
         fetchPolicy: 'no-cache',
         onCompleted: ({expenseMembersByGroupIds}) => {
             if(groupId) {
-                console.log("groups transaction in friends/index", expenseMembersByGroupIds)
+                // console.log("groups transaction in friends/index", expenseMembersByGroupIds)
                 setExpenseMembers(expenseMembersByGroupIds)
                 setIsCompleteFriends(true)
             }
@@ -61,75 +70,79 @@ export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
 
     }, [isCompleteFriends])
 
-    //   //for each expense member row, add it to how much each friend owes/ is Owed
-      const calculateSplitExpenses = () => {        
+    //for each expense member row, add it to how much each friend owes/ is Owed
+      const calculateSplitExpenses = () => {  
+        const amountOwedByEachPerson: OverallOwedAmts = {}      
         expenseMembers?.forEach((expenseMember) => {
-            // console.log("name of friend", expenseMember.member_id.username)
             const memberIdString = expenseMember.member_id.id;
-            //friend is owed the amount
-            if (expenseMember.isOwed > 0) { 
-                if (!amountsOwedToFriend[memberIdString]) {
-                    amountsOwedToFriend[memberIdString] = 0;
-                } 
-                amountsOwedToFriend[memberIdString] += expenseMember.isOwed
-            }
-            //friend owes me the amount
-            if (expenseMember.owes > 0){
-                if (!amountsOwedByFriend[memberIdString]) {
-                    amountsOwedByFriend[memberIdString] = 0
-                }
-                amountsOwedByFriend[memberIdString] += expenseMember.owes
+            const payerIdString = expenseMember.expense_id.payer_id.id
+            if (memberIdString !== payerIdString) {
+                amountOwedByEachPerson[memberIdString] = (amountOwedByEachPerson[memberIdString] || {}) //sub-object
+                amountOwedByEachPerson[memberIdString][payerIdString] = (amountOwedByEachPerson[memberIdString][payerIdString] || 0) + expenseMember.owes //member owes payer 'owes' amt
             }
         })
-        console.log("Amt owed by friend", amountsOwedByFriend)
-        console.log("amt i owe", amountsOwedToFriend)
-        calculateOverallAmtOwes()
+        // console.log("amt owed by each person", amountOwedByEachPerson)
+        calculateNetOwed(amountOwedByEachPerson)
       }
 
-      const calculateOverallAmtOwes = () => {
-        const overallAmtsOwed: Record<string, number> = {} //array of hashsets
-        for (const friend in amountsOwedByFriend) {
-            const amountOwedToYou = amountsOwedByFriend[friend] || 0.0
-            const amountYouOwe = amountsOwedToFriend[friend] || 0.0
+      //doing to calculations to find net that each person owes/isOwed
+      const calculateNetOwed = (amountOwedByEachPerson: OverallOwedAmts) => {
+       let netAmtOwedByEachPerson:OverallOwedAmts = {}
 
-            overallAmtsOwed[friend] = amountOwedToYou - amountYouOwe 
+       for (const [person, debts] of Object.entries(amountOwedByEachPerson)) {
+        // console.log([person, debts])
+        
+        for (const [debtor, amount] of Object.entries(debts)) {
+            if (debtor !== person) {
+                netAmtOwedByEachPerson[person] = netAmtOwedByEachPerson[person] || {};
+                netAmtOwedByEachPerson[debtor] = netAmtOwedByEachPerson[debtor] || {};
+                netAmtOwedByEachPerson[person][debtor] = (netAmtOwedByEachPerson[person][debtor] || 0) + amount;
+                netAmtOwedByEachPerson[debtor][person] = (netAmtOwedByEachPerson[debtor][person] || 0) - amount;
+          }
         }
-        //make sure friends in both arrays are included 
-        for (const friend in amountsOwedToFriend) {
-            if (!overallAmtsOwed[friend]) {
-                const amountOwedToYou = 0.0
-                const amountYouOwe = amountsOwedToFriend[friend] || 0.0
+      }
+    //    console.log("amt", netAmtOwedByEachPerson)
 
-                overallAmtsOwed[friend] = amountOwedToYou-amountYouOwe
+       //collapsing into a simpler object
+        if (userId) {
+            delete netAmtOwedByEachPerson[userId];
+        }
+        //if in friends tab - remove any record that I'm not involved in 
+        if (!groupId) {
+            for (const [person, debts] of Object.entries(netAmtOwedByEachPerson)) {
+                for (const [debtor, amount] of Object.entries(debts)) {
+                    if (person !== userId && debtor !== userId) {
+                        delete netAmtOwedByEachPerson[person][debtor];
+                    }
+                }
+                // If the person no longer has any debts after removing transactions, delete the person
+                if (Object.keys(netAmtOwedByEachPerson[person]).length === 0) {
+                    delete netAmtOwedByEachPerson[person];
+                }
             }
         }
+       
+        console.log("final output", netAmtOwedByEachPerson)
 
-        console.log("overall amt owed", overallAmtsOwed)
-        // Object.entries converts it into an array of key-value pairs: [["6634", 11], ['332',4]]
-        //.map(function([userId, amy])) => apply each key-value pair array to this mapping function that takes in 2 arguments and returns objects
-        // transforms the array into: [{id: '..', amt: 3}, {id:'...', amt: 3}]
-        const expensesWithFriends = Object.entries(overallAmtsOwed).map(([userId, amount]) => ({
-            id: userId,
-            amt: amount,
-          }));
-          
-          setExpensesWithFriends(expensesWithFriends)
-          console.log(expensesWithFriends)
+       setExpensesWithFriends(netAmtOwedByEachPerson)
       }
 
 
       //iterate over overallAmtsOwed and pass each to <friend> component
     return (
         <View className="flex-1 bg-purple-300">
-
-            <FlatList data={expensesWithFriends} 
-                renderItem={({ item }) => (
-                    <FriendsListItem
-                      amt={item.amt} 
-                      id={item.id} 
-                      key={item.id} // Key extractor remains the same
-                    />
-                  )}
+                    <FlatList
+                    data={Object.entries(expensesWithFriends)}
+                    renderItem={({ item }) => {
+                        const [person, debts] = item;
+                        return (
+                        <FriendsListItem
+                            key={person}
+                            person={person}
+                            debts={debts}
+                        />
+                        );
+                    }}
                   onEndReachedThreshold={1}
                   contentInsetAdjustmentBehavior="automatic"
             />
@@ -149,3 +162,8 @@ export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
         </View>
     )
 }
+
+// [
+//     ['Sam', { Dini: -0.50 }],
+//     ['Lilian', { Dini: 1 }]
+// ]
