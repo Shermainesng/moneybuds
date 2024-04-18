@@ -8,16 +8,15 @@ import SplitTypes from "./SplitTypes";
 
 interface ExpenseFormProps {
     participants: User[]
-    selectedFriend: User
+    // selectedFriend: User
     setIsSelected: (value:boolean) => void
     groupId: number | null
 }
 
-export default function ExpenseForm({participants, selectedFriend, setIsSelected, groupId}: ExpenseFormProps) {
+export default function ExpenseForm({participants, setIsSelected, groupId}: ExpenseFormProps) {
     const [description, setDescription] = useState<string>("");
-    const [amount, setAmount] = useState<number>(0);
+    const [amount, setAmount] = useState<string>("");
     const [showSplitTypes, setShowSplitTypes] = useState<boolean>(false)
-    console.log("participants in expense form", participants)
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString("en-GB", {
@@ -29,7 +28,7 @@ export default function ExpenseForm({participants, selectedFriend, setIsSelected
 
     
     const validateExpenseForm = () => {
-        if (description !== '' && amount > 0) {
+        if (description !== '' && parseFloat(amount) > 0) {
             setShowSplitTypes(true)
         } else {
             Alert.alert('Oops! Enter a description and amount first')
@@ -37,24 +36,23 @@ export default function ExpenseForm({participants, selectedFriend, setIsSelected
     }
 
     const handleAmountChange = (text:string) => {
-        const parsedAmount = parseFloat(text)
-        if (!isNaN(parsedAmount)) { //if is a number
-            setAmount(parsedAmount)
-        } else {
-            Alert.alert('Enter a valid amount in numeric format')
-        }
+        // Remove leading zeros and non-numeric characters (except for '.')
+        const sanitizedText = text.replace(/[^0-9.]/g, '');
+        const formattedNumber = sanitizedText.substring(0, sanitizedText.indexOf('.') + 3); //only save up to 2 dp
+        setAmount(formattedNumber);
+        // Alert.alert('Enter a valid amount in numeric format')
     }
 
     return (
         <View className="pt-5">
             <Stack.Screen
                 options={{
-                    
-                      headerLeft: () => (
-                        <Link href="../">
-                          <EvilIcons name="close" size={24} color="black" />
-                    </Link>
-                      )
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={()=> setIsSelected(false)}>
+                            <Text>Back</Text>
+                        </TouchableOpacity>
+                    ), 
+                    headerRight:() => null
                 }}/>
 
             {showSplitTypes ? (
@@ -64,7 +62,9 @@ export default function ExpenseForm({participants, selectedFriend, setIsSelected
                 <View style={{ borderBottomWidth: 1, borderBottomColor: 'gray', padding:10, flexDirection: 'row', width:'100%'}}>
                     <Text className="text-gray-500">With you and:</Text>
                         <TouchableOpacity onPress={() => setIsSelected(false)}>
-                            <Text>{selectedFriend.username}</Text>
+                            <View className='flex-row'>
+                                {participants && participants.map((p)=> <Text key={p.id}>{p.username},</Text>)}
+                            </View>
                         </TouchableOpacity>
                 </View>
 
@@ -75,7 +75,14 @@ export default function ExpenseForm({participants, selectedFriend, setIsSelected
                             </View>
                             <View className="bg-[#FDF3FD] rounded-b-xl border border-t-[0.5px] p-3 pt-0 w-full">
                                 <TextInput className="border-b-[1px] text-lg text-black p-2" placeholder="Enter a description" placeholderTextColor="gray"  value={description} onChangeText={text=> setDescription(text)}/>
-                                <TextInput className="border-b-[1px] text-lg text-black p-2" placeholder="$0.00" placeholderTextColor="gray" value={amount !== undefined ? amount.toString() : ""} onChangeText={handleAmountChange} keyboardType="numeric" />
+                                <TextInput
+                                    className="border-b-[1px] text-lg text-black p-2"
+                                    placeholder="$0.00"
+                                    placeholderTextColor="gray"
+                                    value={amount} // Display with two decimal places
+                                    onChangeText={handleAmountChange}
+                                    keyboardType="decimal-pad" 
+                                    />
                             </View>
                         </View> 
                  </View>

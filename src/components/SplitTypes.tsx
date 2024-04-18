@@ -10,7 +10,7 @@ import { useAuth } from '../providers/AuthProvider';
 
 type SplitTypes = { 
     setShowSplitTypes: (value:boolean) => void
-    amount: number
+    amount: string
     description: string
     participants: User[]
     groupId: number | null
@@ -18,6 +18,7 @@ type SplitTypes = {
 
 
 export default function SplitTypes ({setShowSplitTypes, amount, participants, description, groupId}: SplitTypes) {
+    const amtFloat = parseFloat(amount)
     const router = useRouter();
     const [payerIndex, setPayerIndex] = useState<number>(0)
     const [percentagesToSplitCost, setPercentagesToSplitCost] = useState<number[]>([])
@@ -27,8 +28,6 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
     const [owesUpdated, setOwesUpdated] = useState<boolean>(false);
     const [expenseId, setExpenseId] = useState<number>()
     const [expenseMembersAdded, setExpenseMembersAdded] = useState<boolean>(false)
-    console.log("participants in split types", participants)
-    console.log("groupId in split types", groupId)
 
     const [addExpense, {loading: expenseLoading, error: expenseError}] = useMutation(ADD_EXPENSE, {
         update(cache, {data: {addExpense}}) {
@@ -59,15 +58,16 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
     async function addExpenseMembers() {
         if (expenseId) {
             // Construct an array of ExpenseMemberInput objects
+            console.log('expenseId', expenseId)
+            console.log('participants', participants)
+            console.log('in add expense members isOwed', isOwed)
+            console.log('in add expense members owes', owes)
             const expenseMemberInput = participants.map((participant, index) => ({
                 expense_id: expenseId,
                 member_id: participant.id,
                 isOwed: isOwed[index],
                 owes: owes[index],
             }));
-
-            console.log("expense member input", expenseMemberInput)
-
             try {
                 // Call addExpenseMember mutation with the constructed input
                 await addExpenseMember({
@@ -86,7 +86,8 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
 
     //set array of percentages when page first loads
     useEffect(() => {
-        const initialPercentages = Array(participants.length).fill(50)
+        const equalPercent = parseFloat((100 / participants.length).toFixed(2));
+        const initialPercentages = Array(participants.length).fill(equalPercent)
         setPercentagesToSplitCost(initialPercentages)
     }, [participants])
 
@@ -117,12 +118,12 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
     //calculate amount each person owes/isOwed
     const calculateAmountOwed = () => {
         percentagesToSplitCost.forEach((splitPercentage, index) => {
-            const share = parseFloat(((splitPercentage / 100) * amount).toFixed(2));//calc each participant's share
+            const share = parseFloat(((splitPercentage / 100) * amtFloat).toFixed(2));//calc each participant's share
 
             if (index === payerIndex) {
                 setIsOwed((prevIsOwed) => {
                    const updatedIsOwed = [...prevIsOwed]
-                   updatedIsOwed[index] = share
+                   updatedIsOwed[index] = amtFloat - share //amt that the rest owes her
                    return updatedIsOwed
                 })
                 setIsOwedUpdated(true);
@@ -139,9 +140,13 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
     
     //FIRST 
     //make sure the percentages add up to 100. if yes, calculate each person's amt owed and is owned
-    const validatePercentages = () => {
+    const validatePercentages = (tolerance = 0.02) => {
+        console.log('percentage to split cost', percentagesToSplitCost)
         const totalPercentage = percentagesToSplitCost.reduce((sum, percentage) => sum + percentage, 0);
-        if (totalPercentage !== 100) {
+        console.log('total percentage', totalPercentage)
+        const isWithinTolerance = Math.abs(totalPercentage - 100) <= tolerance;
+        console.log(Math.abs(totalPercentage - 100))
+        if (!isWithinTolerance) {
             Alert.alert('Total percentage must be 100.');
         } else {
             calculateAmountOwed()
@@ -171,7 +176,7 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
                 variables: {
                     input: {
                         payer_id: participants[payerIndex].id,
-                        amount: amount,
+                        amount: amtFloat,
                         description: description,
                         date: "2024-03-16", 
                         group_id: groupId !== null ? groupId:null
@@ -233,6 +238,8 @@ export default function SplitTypes ({setShowSplitTypes, amount, participants, de
                         <Text>{participant.username}</Text>
                         {percentagesToSplitCost && percentagesToSplitCost.length > 0 && (
                             <View className='flex-row items-center'>
+                                {/* make sure % assigned to each participant is the correct amt esp for calculating isOwed/owed */}
+                                {/* TODO - percentageToSplitCost should reflect participants respectively */}
                                 <TextInput className="border-b-[1px] text-lg text-black pb-2" value={percentagesToSplitCost[index].toString()} onChangeText={(text) => handlePercentageChange(text, index)} placeholderTextColor="gray" keyboardType="numeric"/>
                                 <Text>%</Text>
                             </View>
