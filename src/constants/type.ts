@@ -17,9 +17,10 @@ export type User = {
   export type Expense = {
     id: string | null
     amount: number 
-    date: string
+    // date: string | null
     description: string
     payer_id: User
+    created_at: string | null
   }
 
   export type ExpenseMember = {

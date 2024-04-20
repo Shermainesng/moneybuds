@@ -14,7 +14,7 @@ export default function ExpensesListItem({ expenseMemberID, description, amount,
     <Link
       href={{
         pathname: "/friends/details",
-        params: { expense_id: expenseMemberID }
+        params: { expenseMemberID: expenseMemberID }
       }}
       asChild
     >
@@ -27,16 +27,18 @@ export default function ExpensesListItem({ expenseMemberID, description, amount,
 
         <View className="flex-row justify-between">
           {amount < 0 ? (
-            <Text className="text-gray-400">
-              {username} paid for {description}
-              You owe ${Math.abs(amount)} 
-            </Text>
+            <View>
+              <Text className="text-gray-400">{username} paid for {description}</Text>
+              <Text>You owe ${Math.abs(amount)}</Text>
+            </View>
 
           ): (
-            <Text className="text-gray-400">
-            You paid for {description}
-            {username} owes you ${Math.abs(amount)} 
-          </Text>
+            <View>
+              <Text className="text-gray-400">
+              You paid for {description}</Text>
+              <Text>{username} owes you ${Math.abs(amount)} 
+            </Text>
+          </View>
           )}
         </View>
       </Pressable>

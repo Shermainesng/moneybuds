@@ -20,13 +20,8 @@ export default function FriendsExpensesScreen() {
     // const friendIsOwed: Record<string, expenseInfo[]> = {}
     const [expenseInfos, setExpenseInfos] = useState<Record<string, expenseInfo>>({});
 
-    // [{"__typename": "ExpenseMember", 
-    // "expense_id": {"__typename": "Expense", "description": "Acai", "id": "756", "payer_id": [Object]}, 
-    // "id": "111", "isOwed": 0, 
-    // "member_id": {"__typename": "Profile", "id": "77a1444f-c581-48c8-85ee-2415105296b4", "username": "Dini"}, 
-    // "owes": 2}
     const {loading: getExpenseMembersLoading, error: getExpenseMembersError, data: getExpenseMembers} = useQuery(GET_EXPENSE_MEMBERS_BY_EXPENSEID, {
-      variables: {userId:id}, 
+      variables: {userId:id, expenseId: null}, 
       fetchPolicy: 'no-cache',
       onCompleted: ({expenseMembersByExpenseIds}) => {
               if (expenseMembersByExpenseIds.length>0) {

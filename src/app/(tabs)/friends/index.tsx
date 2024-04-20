@@ -40,12 +40,16 @@ export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
 
     //for overall amount owed/is owed non-group + group 
     const {loading: getExpenseMembersLoading, error: getExpenseMembersError, data: getExpenseMembers} = useQuery(GET_EXPENSE_MEMBERS_BY_EXPENSEID, {
-        variables: {userId:userId}, 
+        variables: {userId:userId, expenseId: null}, 
         fetchPolicy: 'no-cache',
         onCompleted: ({expenseMembersByExpenseIds}) => {
             if (!isGroup) {
+                console.log(expenseMembersByExpenseIds)
                 setExpenseMembers(expenseMembersByExpenseIds)
                 setIsCompleteFriends(true)
+            } 
+            if (getExpenseMembersError) {
+                console.log("error fetching GET_EXPENSE_MEMBERS_BY_EXPENSEID",getExpenseMembersError )
             }
         }
     });
@@ -61,6 +65,8 @@ export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
             }
         }
     });
+
+  
 
     useEffect(()=> {
         if (isCompleteFriends) {
