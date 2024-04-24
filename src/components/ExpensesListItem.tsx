@@ -9,7 +9,6 @@ type ExpenseItemProps = {
 }
 export default function ExpensesListItem({ expenseMemberID, description, amount, username}: ExpenseItemProps) {
   //TODO: get Expense ID using the expenseMemberID
-  console.log('description', description)
   return (
     <Link
       href={{

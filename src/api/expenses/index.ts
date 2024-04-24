@@ -46,6 +46,9 @@ export const GET_EXPENSE_MEMBERS_BY_EXPENSEID = gql`
         owes
         expense_id {
           id 
+          group_id {
+            id
+          }
           payer_id {
             id
           }

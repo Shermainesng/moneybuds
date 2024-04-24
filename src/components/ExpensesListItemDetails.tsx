@@ -31,7 +31,7 @@ export default function ExpensesListItemDetails({expenseDetails}: ExpensesListIt
       {loading && <ActivityIndicator size="large" color="blue" />}
       <View className="mb-10 w-full border-b-[1px] pb-2">
         <Text className="text-xl font-semibold">{expenseDetails?.description}</Text>
-        {/* TODO: convert created_at to dd/mm/yy format */}
+        {/* TODO: convert created_at to dd/mm/yy fo  rmat */}
         <Text className="text-lg">{expenseDetails?.created_at}</Text> 
 
       </View>

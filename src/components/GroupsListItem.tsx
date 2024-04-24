@@ -6,7 +6,7 @@ import { GET_USER } from "../api/friends";
 import { useQuery } from "@apollo/client";
 
 export const defaultAvatarPath = require("../../assets/images/emoji.png")
-
+//each group item in the group index list
 const GroupsListItem = ({id, name}: Group) => {
   console.log("received in grouplistitem", id, name)
 

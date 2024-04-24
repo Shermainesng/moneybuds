@@ -24,7 +24,7 @@ export default function GroupsLayout() {
         headerBackButtonMenuEnabled:false
         }}/>
   
-     
+     <Stack.Screen name='expenses' options={{ headerShown: false }} />
     </Stack>
   );
 }
