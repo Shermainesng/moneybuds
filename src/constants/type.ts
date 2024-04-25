@@ -18,6 +18,7 @@ export type User = {
     id: string | null
     amount: number 
     // date: string | null
+    group_id: Group | null
     description: string
     payer_id: User
     created_at: string | null

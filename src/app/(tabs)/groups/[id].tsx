@@ -4,7 +4,7 @@ import {useState} from 'react'
 import { Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import FriendsScreen from "../friends"
-
+//screen rendered when we click on a group
 const GroupDetailsScreen = () => {
     const {id} = useLocalSearchParams()
     const [showFriendsList, setShowFriendsList] = useState<boolean>(false)

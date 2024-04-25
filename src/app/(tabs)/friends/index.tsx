@@ -28,6 +28,7 @@ type OverallOwedAmts = {
 type netOverallOwedBoolean = {
     [member: MemberId] : indivOwedBoolean
 }
+//list of friends who owe/isOwed $: 'xx owes xx $x'
 export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
     const {session} = useAuth()
     const userId = session?.user.id
@@ -59,7 +60,7 @@ export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
         fetchPolicy: 'no-cache',
         onCompleted: ({expenseMembersByGroupIds}) => {
             if(groupId) {
-                // console.log("groups transaction in friends/index", expenseMembersByGroupIds)
+                console.log("groups transaction in friends/index", expenseMembersByGroupIds)
                 setExpenseMembers(expenseMembersByGroupIds)
                 setIsCompleteFriends(true)
             }
@@ -137,6 +138,7 @@ export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
       //iterate over overallAmtsOwed and pass each to <friend> component
     return (
         <View className="flex-1 bg-purple-300">
+                 {Object.entries(expensesWithFriends).length>0 ?
                     <FlatList
                     data={Object.entries(expensesWithFriends)}
                     renderItem={({ item }) => {
@@ -146,12 +148,16 @@ export default function FriendsScreen({groupId, isGroup = false}:friendsProps) {
                             key={person}
                             person={person}
                             debts={debts}
+                            groupId={groupId ? groupId : null}
                         />
                         );
                     }}
                   onEndReachedThreshold={1}
                   contentInsetAdjustmentBehavior="automatic"
-            />
+            />:
+            <View className='flex-1 items-center justify-center'>
+                <Text>Start adding expenses now!</Text>
+            </View>}
             
             {!groupId &&
             <View>

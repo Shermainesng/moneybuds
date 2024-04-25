@@ -10,17 +10,19 @@ import { useAuth } from "@/src/providers/AuthProvider";
 type NetAmtOwedByEachPersonProps = {
   person: string
   debts: {[person: string]: number} //debt is an object 
+  groupId: number | null
 } 
 
 export const defaultAvatarPath = require("../../assets/images/emoji.png")
-
-const FriendsListItem = ({person, debts}:NetAmtOwedByEachPersonProps ) => {
+//show breakdown of each expenses after clicking on 'xx owes xx $x'
+//person is the person i
+const FriendsListItem = ({person, debts, groupId}:NetAmtOwedByEachPersonProps ) => {
   const {session} = useAuth()
     const userId = session?.user.id
-    // console.log("received in FriendsListItem", person, debts)
   const [userDetails, setUserDetails] = useState<User>()
   const [debtorDetails, setDebtorDetails] = useState<User[]>()
   const [amounts, setAmounts] = useState<number[]>(Object.values(debts))
+  console.log("group id in fiendslistitem", groupId)
 
   //person = 'sam'
   //get amount owed by person into an array: [-0.5]
@@ -34,12 +36,12 @@ const FriendsListItem = ({person, debts}:NetAmtOwedByEachPersonProps ) => {
           query: GET_USER,
           variables: { id: debtorId }
         });
-        console.log("debtor:", data.profile)
+        // console.log("debtor:", data.profile)
         newDebtorDetails.push(data.profile);
       });
       try {
         await Promise.all(promises);
-        console.log("user updated", newDebtorDetails)
+        // console.log("user updated", newDebtorDetails)
         setDebtorDetails(newDebtorDetails);
       } catch (error) {
         console.error('Error fetching debtor details:', error);
@@ -59,11 +61,15 @@ const FriendsListItem = ({person, debts}:NetAmtOwedByEachPersonProps ) => {
 
     return (
       <View>
-        <Link 
-         href={{
-          pathname: `/(tabs)/friends/${userDetails?.id}`, 
-          params: { name: userDetails?.username }
-        }} asChild>
+       {userDetails && (
+        <Link
+          href={{
+            pathname:groupId !== null ? `/(tabs)/groups/expenses/${userDetails?.id}` : `/(tabs)/friends/${userDetails?.id}`,
+            params: { name: userDetails?.username },
+          }}
+          asChild
+        >
+
           <Pressable style={styles.friendContainer}>
             <View style={styles.friendTitle}>
               <Image source={userDetails?.avatar_url || defaultAvatarPath} style={{width: 30, height:30}}/>
@@ -94,7 +100,7 @@ const FriendsListItem = ({person, debts}:NetAmtOwedByEachPersonProps ) => {
           
            </View>
           </Pressable>
-        </Link>
+        </Link>)}
         </View>
       );
 }
